@@ -32,10 +32,13 @@ const initMap = (features, config) => {
   let path = d3.geoPath()
     .projection(projection);
   
-  // g container to group the paths
-  let map = vis
-    .append('g')
-    .classed('map', true);
+  // create group or use existing one
+  let map = d3.select('#map');
+  if (map.empty()) {
+    map = vis
+      .append('g')
+      .attr('id', m.id);
+  }
   
   // features paths
   map.selectAll('path')
@@ -66,6 +69,7 @@ const start = () => {
   
   let config = {
     map: {
+      id: 'map',
       scale: 7000,
       center: [5.5, 52.2], // longitude, latitude of netherlands
       translate: [viewWidth / 2, viewHeight / 2], // center

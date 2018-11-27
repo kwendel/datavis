@@ -9,14 +9,14 @@ body {
   height: 100vh;
 }
 
-.map > path {
+#map > path {
   stroke: black;
   stroke-width: 1px;
   fill: lightgrey;
   cursor: pointer;
 }
 
-.map > path.hover {
+#map > path.hover {
   fill: orange;
 }
 
