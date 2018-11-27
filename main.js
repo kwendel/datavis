@@ -2,8 +2,12 @@ import * as d3 from 'd3';
 
 // Define global variables
 let vis = d3.select('#vis');
-let viewWidth,
-  viewHeight;
+let
+  viewWidth,
+  viewHeight,
+  projection
+;
+
 
 const resize = () => {
   let container = document.getElementById('viscontainer');
@@ -20,7 +24,7 @@ const initMap = (features, config) => {
   const f = config.features;
   
   // Mercator projection is worldmap on a square
-  let projection = d3.geoMercator()
+  projection = d3.geoMercator()
     .scale(m.scale)
     .center(m.center)
     .translate(m.translate);
@@ -63,7 +67,7 @@ const start = () => {
   let config = {
     map: {
       scale: 7000,
-      center: [5.5, 52.2], // long, lat of netherlands
+      center: [5.5, 52.2], // longitude, latitude of netherlands
       translate: [viewWidth / 2, viewHeight / 2], // center
     },
     features: {
@@ -72,8 +76,33 @@ const start = () => {
       text: 'areaName'
     }
   };
-  
   initMap(features, config);
+  
+  
+  // example of lat/long
+  let cities = [
+    {
+      name: 'Amsterdam',
+      lon: '4.899431',
+      lat: '52.379189'
+    },
+    {
+      name: 'Delft',
+      lon: '4.3570677',
+      lat: '52.0115769'
+    }
+  ];
+  
+  let points = vis.append('g');
+  points
+    .selectAll('circle')
+    .data(cities)
+    .enter()
+    .append('circle')
+    .attr('cx', (d) => projection([d.lon, d.lat])[0])
+    .attr('cy', (d) => projection([d.lon, d.lat])[1])
+    .attr('r', 3)
+    .style('fill', 'red');
 };
 
 // document.addEventListener('DOMContentLoaded', () => start());
