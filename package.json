@@ -1,0 +1,14 @@
+{
+  "name": "InfoVis",
+  "version": "1.0.0",
+  "description": "Data visualization",
+  "main": "index.html",
+  "license": "MIT",
+  "dependencies": {
+    "d3": "^5.7.0",
+    "parcel-bundler": "^1.10.3"
+  },
+  "scripts": {
+    "start": "parcel index.html"
+  }
+}

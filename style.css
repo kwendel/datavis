@@ -1,0 +1,22 @@
+body {
+  font: 10px sans-serif;
+  margin: 0;
+  padding: 0;
+}
+
+#viscontainer {
+  width: 100vw;
+  height: 100vh;
+}
+
+.map > path {
+  stroke: black;
+  stroke-width: 1px;
+  fill: lightgrey;
+  cursor: pointer;
+}
+
+.map > path.hover {
+  fill: orange;
+}
+
