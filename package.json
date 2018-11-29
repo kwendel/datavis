@@ -11,7 +11,8 @@
   },
   "scripts": {
     "start": "parcel index.html",
-    "build": "parcel build index.html --public-url /datavis/ --no-minify",
+    "prebuild": "rm -rf dist/*",
+    "build": "parcel build index.html --public-url /datavis/ --no-minify ",
     "predeploy": "yarn build",
     "deploy": "gh-pages -d dist"
   }
