@@ -3,10 +3,11 @@
   "version": "1.0.0",
   "description": "Data visualization",
   "main": "index.html",
-  "license": "MIT",
+  "homepage": "https://kwendel.github.io/datavis",
   "dependencies": {
     "alasql": "^0.4.11",
     "d3": "^5.7.0",
+    "gh-pages": "^2.0.1",
     "parcel-bundler": "^1.10.3"
   },
   "scripts": {
