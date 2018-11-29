@@ -5,10 +5,14 @@
   "main": "index.html",
   "license": "MIT",
   "dependencies": {
+    "alasql": "^0.4.11",
     "d3": "^5.7.0",
     "parcel-bundler": "^1.10.3"
   },
   "scripts": {
-    "start": "parcel index.html"
+    "start": "parcel index.html",
+    "build": "parcel build index.html --public-url ./ --no-minify",
+    "predeploy": "yarn build",
+    "deploy": "gh-pages -d dist"
   }
 }
