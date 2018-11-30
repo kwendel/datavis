@@ -9,7 +9,7 @@
     "d3": "^5.7.0",
     "gh-pages": "^2.0.1",
     "parcel-bundler": "^1.10.3",
-    "parcel-plugin-static": "^1.0.0"
+    "parcel-plugin-static-files-copy": "^1.2.4"
   },
   "scripts": {
     "start": "parcel index.html --out-dir dist",
@@ -18,8 +18,5 @@
     "predeploy": "yarn build",
     "deploy": "gh-pages -d dist"
   },
-  "parcel-plugin-static": {
-    "source": "geoJSON",
-    "destination": "static"
-  }
+  "staticPath": ["geoJSON", "knmi/stations"]
 }
