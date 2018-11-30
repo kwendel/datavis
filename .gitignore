@@ -6,3 +6,6 @@
 /dist/
 /.cache/
 
+# Ignore yarn error logs
+yarn-error.log
+

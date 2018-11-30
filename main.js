@@ -1,4 +1,5 @@
 import * as d3 from 'd3';
+import alasql from 'alasql';
 
 // Define global variables
 let vis = d3.select('#vis');
@@ -7,6 +8,7 @@ let
   viewHeight,
   projection
 ;
+let db;
 
 
 const resize = () => {

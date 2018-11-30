@@ -8,13 +8,18 @@
     "alasql": "^0.4.11",
     "d3": "^5.7.0",
     "gh-pages": "^2.0.1",
-    "parcel-bundler": "^1.10.3"
+    "parcel-bundler": "^1.10.3",
+    "parcel-plugin-static": "^1.0.0"
   },
   "scripts": {
-    "start": "parcel index.html",
+    "start": "parcel index.html --out-dir dist",
     "prebuild": "rm -rf dist/*",
     "build": "parcel build index.html --public-url /datavis/ --no-minify ",
     "predeploy": "yarn build",
     "deploy": "gh-pages -d dist"
+  },
+  "parcel-plugin-static": {
+    "source": "geoJSON",
+    "destination": "static"
   }
 }
