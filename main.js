@@ -91,21 +91,10 @@ const updateInfoBox = (id, d) => {
 
 const start = () => {
 
-	// load data, requires hardcoded string or parcel wont bundle it
-
-
+	// Draw map
 	drawMap();
 
-	let points = map.append('g');
-	points
-		.selectAll('circle')
-		.data(stations)
-		.enter()
-		.append('circle')
-		.attr('cx', (d) => projection([d.lon, d.lat])[0])
-		.attr('cy', (d) => projection([d.lon, d.lat])[1])
-		.attr('r', 3)
-		.style('fill', 'red');
+	// TODO: initialize visualizations
 };
 
 start();
