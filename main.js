@@ -1,109 +1,111 @@
 import * as d3 from 'd3';
 
 // Define global variables
-let vis = d3.select('#vis');
+let container = document.getElementById('map_container');
+let map = d3.select('#map');
 let
-  viewWidth,
-  viewHeight,
-  projection
-;
+	viewWidth,
+	viewHeight,
+	projection,
+	path;
 
-let stations = require("./knmi/stations")
+let mapdata = require('./geoJSON/provincie_2017');
+let stations = require("./knmi/stations");
 
+const calculateWH = () => {
+
+	// Calculate inner element size
+	let style = getComputedStyle(container);
+	let elementWidth = container.clientWidth;
+	let elementHeight = container.clientHeight;
+	viewWidth = elementWidth - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom);
+	viewHeight = elementHeight - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
+
+}
 
 const resize = () => {
-  let container = document.getElementById('viscontainer');
-  viewWidth = container.clientWidth;
-  viewHeight = container.clientHeight;
-  //
-  // vis = vis
-  //   .attr('width', viewWidth)
-  //   .attr('height', viewHeight);
+
+	drawMap();
+
 };
 
-const initMap = (features, config) => {
-  const m = config.map;
-  const f = config.features;
+const drawMap = () => {
 
-  // Mercator projection is worldmap on a square
-  projection = d3.geoMercator()
-    .scale(m.scale)
-    .center(m.center)
-    .translate(m.translate);
+	calculateWH();
 
-  let path = d3.geoPath()
-    .projection(projection);
+	// Mercator projection is worldmap on a square
+	projection = d3.geoMercator().fitSize([viewWidth, viewHeight], mapdata);
 
-  // create group or use existing one
-  let map = d3.select('#map');
-  if (map.empty()) {
-    map = vis
-      .append('g')
-      .attr('id', m.id);
-  }
+	// Add projection to map
+	// let path = d3.geoPath().projection(projection)
 
-  // features paths
-  map.selectAll('path')
-    .data(features)
-    .enter()
-    .append('path')
-    .attr('d', path)
-    .attr('vector-effect', 'non-scaling-stroke') // keeps stroke-width the same if we transform
-    .on('mouseover', (d, i, nodes) => {
-      d3.select(nodes[i]).classed('hover', true)
-    })
-    .on('mouseout', (d, i, nodes) => {
-      d3.select(nodes[i]).classed('hover', false)
-    })
-    .on('click', (d) => {
-	  let el = document.getElementById("example");
+	// Fit projection to size
+	projection = projection.fitSize([viewWidth, viewHeight], mapdata);
+	path = d3.geoPath().projection(projection)
 
-	  let html = `<h3>${d.properties.statnaam}</h3><p>Stations in this (land) area:</p><ul>`;
+	// create group or use existing one
+	d3.selectAll("#map *").remove();
 
-	  // Find stations in this province:
-	  for (let station of stations) {
-	    if (d3.geoContains(d.geometry, [station.lon, station.lat])) html += `<li>${station.name}</li>`;
-	  }
+	// features paths
+	map.selectAll('path')
+		.data(mapdata.features)
+		.enter()
+		.append('path')
+		.attr('d', path)
+		.attr('vector-effect', 'non-scaling-stroke') // keeps stroke-width the same if we transform
+		.on('mouseover', (d, i, nodes) => {
+			d3.select(nodes[i]).classed('hover', true)
+		})
+		.on('mouseout', (d, i, nodes) => {
+			d3.select(nodes[i]).classed('hover', false)
+		})
+		.on('click', (d) => updateInfoBox("example", d));
 
-	  html += "</ul>";
-	  el.innerHTML = html;
-    });
+	let points = map.append('g');
+	points
+		.selectAll('circle')
+		.data(stations)
+		.enter()
+		.append('circle')
+		.attr('cx', (d) => projection([d.lon, d.lat])[0])
+		.attr('cy', (d) => projection([d.lon, d.lat])[1])
+		.attr('r', 3)
+		.style('fill', 'red');
+
+	d3.select(window).on('resize', drawMap);
 };
+
+const updateInfoBox = (id, d) => {
+	let el = document.getElementById(id);
+
+	let html = `<h3>${d.properties.statnaam}</h3><p>Stations in this (land) area:</p><ul>`;
+
+	// Find stations in this province:
+	for (let station of stations) {
+		if (d3.geoContains(d.geometry, [station.lon, station.lat])) html += `<li>${station.name}</li>`;
+	}
+
+	html += "</ul>";
+	el.innerHTML = html;
+}
 
 const start = () => {
-  resize();
-  d3.select(window).on('resize', resize);
 
-  // load data, requires hardcoded string or parcel wont bundle it
-  let data = require('./geoJSON/provincie_2017');
-  let features = data.features;
+	// load data, requires hardcoded string or parcel wont bundle it
 
-  let config = {
-    map: {
-      id: 'map',
-      scale: 7000,
-      center: [5.5, 52.2], // longitude, latitude of netherlands
-      translate: [viewWidth / 2, viewHeight / 2], // center
-    },
-    features: {
-      // specify the name of the keys that are used
-      props: 'properties',
-      text: 'areaName'
-    }
-  };
 
-  initMap(features, config);
+	drawMap();
 
-  let points = vis.append('g');
-  points
-    .selectAll('circle')
-    .data(stations)
-    .enter()
-    .append('circle')
-    .attr('cx', (d) => projection([d.lon, d.lat])[0])
-    .attr('cy', (d) => projection([d.lon, d.lat])[1])
-    .attr('r', 3)
-    .style('fill', 'red');
+	let points = map.append('g');
+	points
+		.selectAll('circle')
+		.data(stations)
+		.enter()
+		.append('circle')
+		.attr('cx', (d) => projection([d.lon, d.lat])[0])
+		.attr('cy', (d) => projection([d.lon, d.lat])[1])
+		.attr('r', 3)
+		.style('fill', 'red');
 };
 
 start();

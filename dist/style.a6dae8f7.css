@@ -6317,15 +6317,13 @@ body {
   padding: 0; }
 
 #wrapper {
-  height: 100vh; }
+  min-height: 100vh; }
 
-#selectionPane, #informationPane {
-  width: 20%; }
+#map_container {
+  padding: 1rem;
+  min-height: 600px; }
 
-#mapPane {
-  width: 60%; }
-
-#vis {
+#map {
   width: 100%;
   height: 100%; }
 

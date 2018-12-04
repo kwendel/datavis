@@ -6,15 +6,15 @@
 </head>
 <body>
 
-<div id="wrapper" class="d-flex flex-column">
+<div id="wrapper" class="d-flex flex-column container-fluid">
 
 	<header>
 		<h1>Weather Visualizations</h1>
 	</header>
 
-	<div class="flex-grow-1 d-flex flex-row">
+	<div class="flex-grow-1 d-flex flex-row row">
 
-		<div id="selectionPane">
+		<div id="selectionPane" class="col-sm-12 col-md-2">
 			<h3>Feature selection</h3>
 
 			<form>
@@ -34,10 +34,10 @@
 
 		</div>
 
-		<div id="mapPane" class="d-flex flex-column">
+		<div id="mapPane" class="d-flex flex-column col-sm-12 col-md-8">
 
-			<div id="viscontainer" class="flex-grow-1">
-				<svg id="vis"></svg>
+			<div id="map_container" class="flex-grow-1">
+				<svg id="map"></svg>
 			</div>
 
 			<div id="timeline" class="">
@@ -49,7 +49,7 @@
 
 		</div>
 
-		<div id="informationPane">
+		<div id="informationPane" class="col col-sm-12 col-md-2">
 
 			<div class="card">
 				<div id="example" class="card-body">
