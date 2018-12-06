@@ -1,3 +1,4 @@
+import "@babel/polyfill";
 import * as d3 from 'd3';
 
 // Define global variables
@@ -7,13 +8,11 @@ let
 	viewWidth,
 	viewHeight,
 	projection,
-	path;
-
-let mapdata = require('./geoJSON/provincie_2017');
-let stations = require("./knmi/stations");
+	path,
+	stations
+;
 
 const calculateWH = () => {
-
 	// Calculate inner element size
 	let style = getComputedStyle(container);
 	let elementWidth = container.clientWidth;
@@ -27,53 +26,59 @@ const calculateWH = () => {
 		.attr('height', viewHeight);
 };
 
-const resize = () => {
+const drawMap = (url) => {
+	return d3.json(url).then((mapdata) => {
+		calculateWH();
+		// Mercator projection is worldmap on a square
+		projection = d3.geoMercator().fitSize([viewWidth, viewHeight], mapdata);
 
-	drawMap();
+		// Fit projection to size
+		projection = projection.fitSize([viewWidth, viewHeight], mapdata);
+		path = d3.geoPath().projection(projection);
 
+		// create group or use existing one
+		d3.selectAll("#map *").remove();
+
+		// features paths
+		map.selectAll('path')
+			.data(mapdata.features)
+			.enter()
+			.append('path')
+			.attr('d', path)
+			.attr('vector-effect', 'non-scaling-stroke') // keeps stroke-width the same if we transform
+			.on('mouseover', (d, i, nodes) => {
+				d3.select(nodes[i]).classed('hover', true)
+			})
+			.on('mouseout', (d, i, nodes) => {
+				d3.select(nodes[i]).classed('hover', false)
+			})
+			.on('click', (d) => updateInfoBox("example", d));
+	}).catch((err) => {
+		console.error(`Error during reading geoJSON with url: ${url}`);
+		console.error(err)
+	});
 };
 
-const drawMap = () => {
+const drawStations = (url) => {
+	return d3.json(url).then((s) => {
+		// Save stations for later reference
+		stations = s;
 
-	calculateWH();
-
-	// Mercator projection is worldmap on a square
-	projection = d3.geoMercator().fitSize([viewWidth, viewHeight], mapdata);
-
-	// Fit projection to size
-	projection = projection.fitSize([viewWidth, viewHeight], mapdata);
-	path = d3.geoPath().projection(projection);
-
-	// create group or use existing one
-	d3.selectAll("#map *").remove();
-
-	// features paths
-	map.selectAll('path')
-		.data(mapdata.features)
-		.enter()
-		.append('path')
-		.attr('d', path)
-		.attr('vector-effect', 'non-scaling-stroke') // keeps stroke-width the same if we transform
-		.on('mouseover', (d, i, nodes) => {
-			d3.select(nodes[i]).classed('hover', true)
-		})
-		.on('mouseout', (d, i, nodes) => {
-			d3.select(nodes[i]).classed('hover', false)
-		})
-		.on('click', (d) => updateInfoBox("example", d));
-
-	let points = map.append('g');
-	points
-		.selectAll('circle')
-		.data(stations)
-		.enter()
-		.append('circle')
-		.attr('cx', (d) => projection([d.lon, d.lat])[0])
-		.attr('cy', (d) => projection([d.lon, d.lat])[1])
-		.attr('r', 3)
-		.style('fill', 'red');
-
-	d3.select(window).on('resize', drawMap);
+		// Draw stations as svg circle
+		let points = map.append('g');
+		points
+			.selectAll('circle')
+			.data(stations)
+			.enter()
+			.append('circle')
+			.attr('cx', (d) => projection([d.lon, d.lat])[0])
+			.attr('cy', (d) => projection([d.lon, d.lat])[1])
+			.attr('r', 3)
+			.style('fill', 'red');
+	}).catch((err) => {
+		console.error(`Error during reading the stations with url: ${url}`);
+		console.error(err)
+	});
 };
 
 const updateInfoBox = (id, d) => {
@@ -90,12 +95,15 @@ const updateInfoBox = (id, d) => {
 	el.innerHTML = html;
 };
 
-const start = () => {
+async function start() {
+	// Set resize handler
+	d3.select(window).on('resize', start);
 
 	// Draw map
-	drawMap();
+	await drawMap("./geoJSON/provincie_2017.json");
+	await drawStations("./knmi/stations.json");
 
 	// TODO: initialize visualizations
-};
+}
 
 start();
