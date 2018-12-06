@@ -5,6 +5,7 @@
 # Ignore build artefacts from parcel
 /dist/
 /.cache/
+yarn-error.log
 
 # Ignore yarn error logs
 yarn-error.log
