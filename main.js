@@ -1,5 +1,7 @@
 import "@babel/polyfill";
 import * as d3 from 'd3';
+import Datahandler from './datahandler';
+import alasql from 'alasql';
 
 // Define global variables
 let container = document.getElementById('map_container');
@@ -104,6 +106,28 @@ async function start() {
 	await drawStations("./knmi/stations.json");
 
 	// TODO: initialize visualizations
+	let datahandler = new Datahandler(stations);
+	datahandler.load('209').then((d) => {
+		// console.log(d);
+
+
+		console.log(datahandler.query({
+			select: '*',
+			where: 'DDVEC < 80',
+		}, [209]));
+
+		// let q2 = alasql(`SELECT * FROM ? WHERE DATE LIKE ${new Date("2014-01-01").toISOString().slice(0,10)}% AND ${new Date('2015-01-01').toISOString().slice(0,10)}%`, [d]);
+		// console.log(q2);
+
+		console.log(datahandler.queryRange({
+			select: '*',
+			start: '2014-01-01',
+			end: '2015-01-01',
+		}, [209]))
+
+	});
+
+
 }
 
 start();
