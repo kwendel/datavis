@@ -8,4 +8,6 @@
 This project uses parcel to serve the js files to localhost. The following commands are available:
 
 - `yarn start`: start the dev server with hot reloading
+- `yarn build`: builds the application to the dist/ folder
+- `yarn deploy`: deploys build to [Github Pages](https://kwendel.github.io/datavis/)
 

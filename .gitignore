@@ -3,5 +3,7 @@
 /node_modules/*
 
 # Ignore build artefacts from parcel
+/dist/
 /.cache/
+yarn-error.log
 
