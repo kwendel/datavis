@@ -21,7 +21,11 @@ const calculateWH = () => {
 	viewWidth = elementWidth - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom);
 	viewHeight = elementHeight - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
 
-}
+	// Set svg attribute size
+	map = map
+		.attr('width', viewWidth)
+		.attr('height', viewHeight);
+};
 
 const resize = () => {
 
@@ -36,12 +40,9 @@ const drawMap = () => {
 	// Mercator projection is worldmap on a square
 	projection = d3.geoMercator().fitSize([viewWidth, viewHeight], mapdata);
 
-	// Add projection to map
-	// let path = d3.geoPath().projection(projection)
-
 	// Fit projection to size
 	projection = projection.fitSize([viewWidth, viewHeight], mapdata);
-	path = d3.geoPath().projection(projection)
+	path = d3.geoPath().projection(projection);
 
 	// create group or use existing one
 	d3.selectAll("#map *").remove();
@@ -87,7 +88,7 @@ const updateInfoBox = (id, d) => {
 
 	html += "</ul>";
 	el.innerHTML = html;
-}
+};
 
 const start = () => {
 

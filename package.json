@@ -17,5 +17,8 @@
     "build": "parcel build index.html --public-url /datavis/ --no-minify ",
     "predeploy": "yarn build",
     "deploy": "gh-pages -d dist"
+  },
+  "devDependencies": {
+    "sass": "^1.15.1"
   }
 }
