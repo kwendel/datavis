@@ -1,7 +1,6 @@
 import "@babel/polyfill";
 import * as d3 from 'd3';
 import Datahandler from './datahandler';
-import alasql from 'alasql';
 
 // Define global variables
 let container = document.getElementById('map_container');
@@ -10,8 +9,12 @@ let
 	viewWidth,
 	viewHeight,
 	projection,
-	path,
-	stations
+	path
+;
+// Global data variables
+let
+	stations,
+	datahandler
 ;
 
 const calculateWH = () => {
@@ -99,48 +102,32 @@ const updateInfoBox = (id, d) => {
 
 async function start() {
 	// Set resize handler
+	// TODO: create seperate resize handler so we dont reload files
 	d3.select(window).on('resize', start);
 
-	// Draw map
-	await drawMap("./geoJSON/provincie_2017.json");
-	await drawStations("./knmi/stations.json");
+	datahandler = new Datahandler(stations);
+	Promise.all([
+		// Draw map
+		drawMap("./geoJSON/provincie_2017.json"),
+	 	drawStations("./knmi/stations.json"),
+		// Load all the stations files
+		datahandler.loadAll(),
+	]).then(() => {
+		// All is now loaded and we are ready to query and create visualizations
 
-	// TODO: initialize visualizations
-	let datahandler = new Datahandler(stations);
-	datahandler.loadAll().then((d) => {
-		// console.log(d);
-
-
-		console.log('Stations 209 + 210');
-		console.log(datahandler.query({
-			select: '*',
+		// TODO: initialize visualizations
+		// example
+		console.log('Query range 2014 with ddvec < 80');
+		datahandler.queryRange({
+			select: 'STN, DATE, DDVEC',
+			start: '2014-01-01',
+			end: '2015-01-01',
 			where: 'DDVEC < 80',
-		}, [209, 210]));
-
-		console.log('Stations 209');
-		console.log(datahandler.query({
-			select: '*',
-			where: 'DDVEC < 80',
-		}, [209] ));
-
-		console.log('Stations 210');
-		console.log(datahandler.query({
-			select: '*',
-			where: 'DDVEC < 80',
-		}, [210] ));
-
-		// let q2 = alasql(`SELECT * FROM ? WHERE DATE LIKE ${new Date("2014-01-01").toISOString().slice(0,10)} AND ${new Date('2015-01-01').toISOString().slice(0,10)}`, [d]);
-		// console.log(q2);
-
-		// console.log(datahandler.queryRange({
-		// 	select: '*',
-		// 	start: '2014-01-01',
-		// 	end: '2015-01-01',
-		// }, [209]))
+		}).then((d) => {
+			console.log(d)
+		});
 
 	});
-
-
 }
 
 start();

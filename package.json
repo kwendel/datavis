@@ -13,7 +13,7 @@
     "parcel-bundler": "^1.10.3"
   },
   "scripts": {
-    "copy": "rsync ./knmi/stations.json ./dist/knmi/stations.json && rsync ./knmi/stations/*.json ./knmi/stations && rsync ./geoJSON/*.json ./dist/geoJSON/",
+    "copy": "rsync ./knmi/stations.json ./dist/knmi/stations.json && rsync ./knmi/stations/*.json ./knmi/stations/ && rsync ./geoJSON/*.json ./dist/geoJSON/",
     "start": "yarn copy && parcel index.html --out-dir dist",
     "prebuild": "rm -rf dist/*",
     "build": "yarn copy && parcel build index.html --public-url /datavis/ --no-minify ",
