@@ -9,18 +9,20 @@
     "alasql": "^0.4.11",
     "bootstrap-scss": "^4.1.3",
     "d3": "^5.7.0",
-    "gh-pages": "^2.0.1",
-    "parcel-bundler": "^1.10.3"
+    "gh-pages": "^2.0.1"
   },
   "scripts": {
-    "copy": "rsync ./knmi/stations.json ./dist/knmi/stations.json && rsync ./knmi/stations/*.json ./knmi/stations/ && rsync ./geoJSON/*.json ./dist/geoJSON/",
+    "precopy": "shx mkdir -p ./dist/knmi/stations && shx mkdir -p ./dist/geoJSON",
+    "copy": "shx cp ./knmi/*.json ./dist/knmi/ && shx cp ./knmi/stations/*.json ./dist/knmi/stations/ && shx cp ./geoJSON/*.json ./dist/geoJSON/",
     "start": "yarn copy && parcel index.html --out-dir dist",
-    "prebuild": "rm -rf dist/*",
+    "prebuild": "shx rm -rf dist/*",
     "build": "yarn copy && parcel build index.html --public-url /datavis/ --no-minify ",
     "predeploy": "yarn build",
     "deploy": "gh-pages -d dist"
   },
   "devDependencies": {
-    "sass": "^1.15.1"
+    "sass": "^1.15.1",
+    "parcel-bundler": "^1.10.3",
+    "shx": "^0.3.2"
   }
 }
