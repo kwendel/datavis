@@ -116,7 +116,7 @@ async function start() {
 	// Draw map and wait for the stations
 	let stations = await resize();
 	// Load all the stations files
-	let datahandler = new DataHandler(stations);
+	datahandler = new DataHandler(stations);
 	await datahandler.loadAll();
 
 	// All is now loaded and we are ready to query and create visualizations
