@@ -11,6 +11,10 @@ export default class DataHandler {
 		return this.data[id]
 	}
 
+	getStationsInRegion(code) {
+		return this.stations.filter((s) => s.province_code === code);
+	}
+
 	async load(id) {
 		// force cache use since the knmi station files wont change
 		return d3.json(`./knmi/stations/${id}.json`, {cache: "force-cache"}).then((d) => {

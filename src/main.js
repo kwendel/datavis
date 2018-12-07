@@ -93,26 +93,29 @@ const updateInfoBox = (id, d) => {
 	let html = `<h3>${d.properties.statnaam}</h3><p>Stations in this (land) area:</p><ul>`;
 
 	// Find stations in this province:
+	let stations = datahandler.getStationsInRegion(d.properties.statcode);
 	for (let station of stations) {
-		if (d3.geoContains(d.geometry, [station.lon, station.lat])) html += `<li>${station.name}</li>`;
+		html += `<li>${station.name}</li>`;
 	}
 
 	html += "</ul>";
 	el.innerHTML = html;
 };
 
+const resize = () => {
+	// TODO: create seperate resize handler so we dont reload files
+	// First draw the map and then the stations because we need the projection
+	return drawMap("./geoJSON/provincie_2017.json").then(() => {
+		return drawStations("./knmi/stations.json");
+	});
+};
+
 async function start() {
 	// Set resize handler
-	// TODO: create seperate resize handler so we dont reload files
-	d3.select(window).on('resize', start);
+	d3.select(window).on('resize', resize);
 
-	Promise.all([
-		// Draw map
-		drawMap("./geoJSON/provincie_2017.json"),
-		drawStations("./knmi/stations.json"),
-	]).then((data) => {
-		// second promise returned the stations
-		let stations = data[1];
+	// Draw map
+	resize().then((stations) => {
 		// Load all the stations files
 		datahandler = new Datahandler(stations);
 		return datahandler.loadAll();
