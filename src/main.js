@@ -13,7 +13,6 @@ let
 ;
 // Global data variables
 let
-	stations,
 	datahandler
 ;
 
@@ -58,6 +57,8 @@ const drawMap = (url) => {
 				d3.select(nodes[i]).classed('hover', false)
 			})
 			.on('click', (d) => updateInfoBox("example", d));
+
+		return;
 	}).catch((err) => {
 		console.error(`Error during reading geoJSON with url: ${url}`);
 		console.error(err)
@@ -65,10 +66,7 @@ const drawMap = (url) => {
 };
 
 const drawStations = (url) => {
-	return d3.json(url).then((s) => {
-		// Save stations for later reference
-		stations = s;
-
+	return d3.json(url).then((stations) => {
 		// Draw stations as svg circle
 		let points = map.append('g');
 		points
@@ -80,6 +78,9 @@ const drawStations = (url) => {
 			.attr('cy', (d) => projection([d.lon, d.lat])[1])
 			.attr('r', 3)
 			.style('fill', 'red');
+
+		// return stations for later reference
+		return stations
 	}).catch((err) => {
 		console.error(`Error during reading the stations with url: ${url}`);
 		console.error(err)
@@ -105,14 +106,17 @@ async function start() {
 	// TODO: create seperate resize handler so we dont reload files
 	d3.select(window).on('resize', start);
 
-	datahandler = new Datahandler(stations);
 	Promise.all([
 		// Draw map
 		drawMap("./geoJSON/provincie_2017.json"),
-	 	drawStations("./knmi/stations.json"),
+		drawStations("./knmi/stations.json"),
+	]).then((data) => {
+		// second promise returned the stations
+		let stations = data[1];
 		// Load all the stations files
-		datahandler.loadAll(),
-	]).then(() => {
+		datahandler = new Datahandler(stations);
+		return datahandler.loadAll();
+	}).then(() => {
 		// All is now loaded and we are ready to query and create visualizations
 
 		// TODO: initialize visualizations
@@ -126,7 +130,6 @@ async function start() {
 		}).then((d) => {
 			console.log(d)
 		});
-
 	});
 }
 
