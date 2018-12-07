@@ -12,10 +12,11 @@ export default class DataHandler {
 	}
 
 	async load(id) {
-		return d3.json(`./knmi/stations/${id}.json`).then((d) => {
+		// force cache use since the knmi station files wont change
+		return d3.json(`./knmi/stations/${id}.json`, {cache: "force-cache"}).then((d) => {
 			console.log(`Succesfully loaded: ${id}`);
 			this.data[id] = d;
-			return d;
+			return;
 		}).catch((err) => {
 			console.log(`Error loading: ${id}`);
 			console.error(err);
@@ -29,38 +30,56 @@ export default class DataHandler {
 		return Promise.all(promises);
 	}
 
-	// Query the given station with the query, default will search in all station data.
-	query(query, stations = []) {
-
+	// query the given station with the query, default will search in all station data.
+	// IMPORTANT:
+	// - wrap string with quotes beforing querying or it wont find anything: DATE = '2018-01-01'
+	// - numbers dont need quotes
+	// EXAMPLE INPUT:
+	// datahandler.query({
+	// 			select: '*',
+	//			where: 'DDVEC < 80',
+	// 			orderby: 'DDVEC asc'
+	// ));
+	query({select, where, orderby}, stations = []) {
 		// Make array with data that we are going to query
 		let searchIn = [];
 		for (let s of stations) {
-			searchIn.concat(this.getStationData(s));
+			searchIn = searchIn.concat(...this.getStationData(s));
 		}
 
 		// search all stations if no stations where specified
 		if (stations.length === 0) {
-			searchIn = this.data;
+			searchIn = searchIn.concat(...Object.values(this.data))
 		}
 
-		let {select, where, groupby} = query;
+		// Build the query
 		let q = `SELECT ${select} FROM ?`;
 		if (where) {
 			q = q + ` WHERE ${where}`;
 		}
-		if (groupby) {
-			q = q + ` GROUP BY ${groupby}`;
+		if (orderby) {
+			q = q + ` ORDER BY ${orderby}`;
 		}
-		console.log(searchIn);
 
-		return alasql(q, searchIn)
+		// Return a promise with the result
+		return alasql.promise(q, [searchIn])
 	}
 
-	queryRange(query, stations = []) {
-		let {select, where, start, end} = query;
+	// queryRange will query in the given date range for the given station, default will query all station data.
+	// TODO: ordering is now ascending by dates but per STN (id) sorted. Not sure how to fix this
+	// EXAMPLE INPUT:
+	// datahandler.queryRange({
+	// 			select: '*',
+	// 			start: '2014-01-01',
+	// 			end: '2015-01-01',
+	// 			where: 'DDVEC < 80',
+	// 		}))
+	queryRange({select, where, start, end}, stations = []) {
+		// let {select, where, start, end} = query;
 		return this.query({
 				select: select,
-				where: `DATE BETWEEN ${start} AND ${end} AND ${where}`
+				where: `DATE BETWEEN '${start}' AND '${end}' AND ${where}`,
+				orderby: `DATE asc`
 			},
 			stations);
 
