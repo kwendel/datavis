@@ -66,7 +66,7 @@ export default class DataHandler {
 	}
 
 	// queryRange will query in the given date range for the given station, default will query all station data.
-	// TODO: ordering is now ascending by dates but per STN (id) sorted. Not sure how to fix this
+	// TODO: ordering is sometimes ascending by dates but per STN (id) sorted. Not sure how to fix this
 	// EXAMPLE INPUT:
 	// datahandler.queryRange({
 	// 			select: '*',
