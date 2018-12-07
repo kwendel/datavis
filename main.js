@@ -107,23 +107,36 @@ async function start() {
 
 	// TODO: initialize visualizations
 	let datahandler = new Datahandler(stations);
-	datahandler.load('209').then((d) => {
+	datahandler.loadAll().then((d) => {
 		// console.log(d);
 
 
+		console.log('Stations 209 + 210');
 		console.log(datahandler.query({
 			select: '*',
 			where: 'DDVEC < 80',
-		}, [209]));
+		}, [209, 210]));
 
-		// let q2 = alasql(`SELECT * FROM ? WHERE DATE LIKE ${new Date("2014-01-01").toISOString().slice(0,10)}% AND ${new Date('2015-01-01').toISOString().slice(0,10)}%`, [d]);
+		console.log('Stations 209');
+		console.log(datahandler.query({
+			select: '*',
+			where: 'DDVEC < 80',
+		}, [209] ));
+
+		console.log('Stations 210');
+		console.log(datahandler.query({
+			select: '*',
+			where: 'DDVEC < 80',
+		}, [210] ));
+
+		// let q2 = alasql(`SELECT * FROM ? WHERE DATE LIKE ${new Date("2014-01-01").toISOString().slice(0,10)} AND ${new Date('2015-01-01').toISOString().slice(0,10)}`, [d]);
 		// console.log(q2);
 
-		console.log(datahandler.queryRange({
-			select: '*',
-			start: '2014-01-01',
-			end: '2015-01-01',
-		}, [209]))
+		// console.log(datahandler.queryRange({
+		// 	select: '*',
+		// 	start: '2014-01-01',
+		// 	end: '2015-01-01',
+		// }, [209]))
 
 	});
 

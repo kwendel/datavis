@@ -35,7 +35,7 @@ export default class DataHandler {
 		// Make array with data that we are going to query
 		let searchIn = [];
 		for (let s of stations) {
-			searchIn.push(this.data[s]);
+			searchIn.concat(this.getStationData(s));
 		}
 
 		// search all stations if no stations where specified
@@ -57,8 +57,12 @@ export default class DataHandler {
 	}
 
 	queryRange(query, stations = []) {
-		let {select, start, end} = query;
-		return this.query({select: select, where: `DATE BETWEEN ${start} AND ${end}`}, stations)
+		let {select, where, start, end} = query;
+		return this.query({
+				select: select,
+				where: `DATE BETWEEN ${start} AND ${end} AND ${where}`
+			},
+			stations);
 
 	}
 }
