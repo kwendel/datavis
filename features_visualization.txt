@@ -1,0 +1,69 @@
+# DDVEC    = Vectorgemiddelde windrichting in graden (360=noord, 90=oost, 180=zuid, 270=west, 0=windstil/variabel). Zie http://www.knmi.nl/kennis-en-datacentrum/achtergrond/klimatologische-brochures-en-boeken;
+Radial histogram
+
+# FHVEC    = Vectorgemiddelde windsnelheid (in 0.1 m/s). Zie http://www.knmi.nl/kennis-en-datacentrum/achtergrond/klimatologische-brochures-en-boeken;
+Is dit gemiddelde snelheid van de wind met richting DDVEC?
+
+# FG       = Etmaalgemiddelde windsnelheid (in 0.1 m/s);
+Histgram/line graph
+
+# FHX      = Hoogste uurgemiddelde windsnelheid (in 0.1 m/s);
+Voor extreme waarde
+
+# FXX      = Hoogste windstoot (in 0.1 m/s);
+Voor extreme waarde
+
+# TG       = Etmaalgemiddelde temperatuur (in 0.1 graden Celsius);
+Temperatuur line graph
+
+# TN       = Minimum temperatuur (in 0.1 graden Celsius);
+Temperatuur line graph
+
+
+# TX       = Maximum temperatuur (in 0.1 graden Celsius);
+Temperatuur line graph
+
+
+# SQ       = Zonneschijnduur (in 0.1 uur) berekend uit de globale straling (-1 voor <0.05 uur);
+# SP       = Percentage van de langst mogelijke zonneschijnduur;
+Zonneschijn histogram
+
+
+# DR       = Duur van de neerslag (in 0.1 uur);
+Misschien leuk om tegen zonneschijnduur te visualizeren
+# RH       = Etmaalsom van de neerslag (in 0.1 mm) (-1 voor <0.05 mm);
+Neerslag histogram
+
+
+# UG       = Etmaalgemiddelde relatieve vochtigheid (in procenten);
+# UX       = Maximale relatieve vochtigheid (in procenten);
+# UN       = Minimale relatieve vochtigheid (in procenten);
+Vochtigheid histogram
+
+
+Verwijderen:
+# FHXH     = Uurvak waarin FHX is gemeten;
+# FHN      = Laagste uurgemiddelde windsnelheid (in 0.1 m/s);
+# FHNH     = Uurvak waarin FHN is gemeten;
+# FXXH     = Uurvak waarin FXX is gemeten;
+# TNH      = Uurvak waarin TN is gemeten;
+# TXH      = Uurvak waarin TX is gemeten;
+# T10N     = Minimum temperatuur op 10 cm hoogte (in 0.1 graden Celsius);
+# T10NH    = 6-uurs tijdvak waarin T10N is gemeten; 6=0-6 UT, 12=6-12 UT, 18=12-18 UT, 24=18-24 UT
+# Q        = Globale straling (in J/cm2);
+# RHXH     = Uurvak waarin RHX is gemeten;
+# RHX      = Hoogste uursom van de neerslag (in 0.1 mm) (-1 voor <0.05 mm);
+# PN       = Laagste uurwaarde van de luchtdruk herleid tot zeeniveau (in 0.1 hPa);
+# PX       = Hoogste uurwaarde van de luchtdruk herleid tot zeeniveau (in 0.1 hPa);
+# PG       = Etmaalgemiddelde luchtdruk herleid tot zeeniveau (in 0.1 hPa) berekend uit 24 uurwaarden;
+# PXH      = Uurvak waarin PX is gemeten;
+# PNH      = Uurvak waarin PN is gemeten;
+# VVN      = Minimum opgetreden zicht; 0: <100 m, 1:100-200 m, 2:200-300 m,..., 49:4900-5000 m, 50:5-6 km, 56:6-7 km, 57:7-8 km,..., 79:29-30 km, 80:30-35 km, 81:35-40 km,..., 89: >70 km)
+# VVNH     = Uurvak waarin VVN is gemeten;
+# VVX      = Maximum opgetreden zicht; 0: <100 m, 1:100-200 m, 2:200-300 m,..., 49:4900-5000 m, 50:5-6 km, 56:6-7 km, 57:7-8 km,..., 79:29-30 km, 80:30-35 km, 81:35-40 km,..., 89: >70 km)
+# VVXH     = Uurvak waarin VVX is gemeten;
+# NG       = Etmaalgemiddelde bewolking (bedekkingsgraad van de bovenlucht in achtsten, 9=bovenlucht onzichtbaar);
+# UXH      = Uurvak waarin UX is gemeten;
+# UNH      = Uurvak waarin UN is gemeten;
+# EV24     = Referentiegewasverdamping (Makkink) (in 0.1 mm);
+
