@@ -1,6 +1,6 @@
 import "@babel/polyfill";
 import * as d3 from 'd3';
-import Datahandler from './datahandler';
+import DataHandler from './datahandler';
 
 // Define global variables
 let container = document.getElementById('map_container');
@@ -102,37 +102,35 @@ const updateInfoBox = (id, d) => {
 	el.innerHTML = html;
 };
 
-const resize = () => {
+async function resize() {
 	// TODO: create seperate resize handler so we dont reload files
 	// First draw the map and then the stations because we need the projection
-	return drawMap("./geoJSON/provincie_2017.json").then(() => {
-		return drawStations("./knmi/stations.json");
-	});
-};
+	await drawMap("./geoJSON/provincie_2017.json");
+	return await drawStations("./knmi/stations.json");
+}
 
 async function start() {
 	// Set resize handler
 	d3.select(window).on('resize', resize);
 
-	// Draw map
-	resize().then((stations) => {
-		// Load all the stations files
-		datahandler = new Datahandler(stations);
-		return datahandler.loadAll();
-	}).then(() => {
-		// All is now loaded and we are ready to query and create visualizations
+	// Draw map and wait for the stations
+	let stations = await resize();
+	// Load all the stations files
+	let datahandler = new DataHandler(stations);
+	await datahandler.loadAll();
 
-		// TODO: initialize visualizations
-		// example
-		console.log('Query range 2014 with ddvec < 80');
-		datahandler.queryRange({
-			select: 'STN, DATE, DDVEC',
-			start: '2014-01-01',
-			end: '2015-01-01',
-			where: 'DDVEC < 80',
-		}).then((d) => {
-			console.log(d)
-		});
+	// All is now loaded and we are ready to query and create visualizations
+
+	// TODO: initialize visualizations
+	// example
+	console.log('Query range 2014 with ddvec < 80');
+	datahandler.queryRange({
+		select: 'STN, DATE, DDVEC',
+		start: '2014-01-01',
+		end: '2015-01-01',
+		where: 'DDVEC < 80',
+	}).then((d) => {
+		console.log(d)
 	});
 }
 
