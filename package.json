@@ -5,6 +5,7 @@
   "main": "index.html",
   "homepage": "https://kwendel.github.io/datavis",
   "dependencies": {
+    "@babel/polyfill": "^7.0.0",
     "alasql": "^0.4.11",
     "bootstrap-scss": "^4.1.3",
     "d3": "^5.7.0",
@@ -12,9 +13,10 @@
     "parcel-bundler": "^1.10.3"
   },
   "scripts": {
-    "start": "parcel index.html",
+    "copy": "rsync ./knmi/stations.json ./dist/knmi/stations.json && rsync ./knmi/stations/*.json ./knmi/stations/ && rsync ./geoJSON/*.json ./dist/geoJSON/",
+    "start": "yarn copy && parcel index.html --out-dir dist",
     "prebuild": "rm -rf dist/*",
-    "build": "parcel build index.html --public-url /datavis/ --no-minify ",
+    "build": "yarn copy && parcel build index.html --public-url /datavis/ --no-minify ",
     "predeploy": "yarn build",
     "deploy": "gh-pages -d dist"
   },
