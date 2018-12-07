@@ -79,10 +79,13 @@ export default class DataHandler {
 	// 			where: 'DDVEC < 80',
 	// 		}))
 	queryRange({select, where, start, end}, stations = []) {
-		// let {select, where, start, end} = query;
+		let whereClause = `DATE BETWEEN '${start}' AND '${end}'`;
+		if (where) {
+			whereClause = whereClause + ` AND ${where}`;
+		}
 		return this.query({
 				select: select,
-				where: `DATE BETWEEN '${start}' AND '${end}' AND ${where}`,
+				where: whereClause,
 				orderby: `DATE asc`
 			},
 			stations);
