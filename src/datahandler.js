@@ -87,6 +87,7 @@ export default class DataHandler {
 				select: select,
 				where: whereClause,
 				orderby: `DATE asc`
+				// orderby: `DDVEC asc`
 			},
 			stations);
 

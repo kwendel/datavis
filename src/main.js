@@ -1,6 +1,7 @@
 import "@babel/polyfill";
 import * as d3 from 'd3';
 import DataHandler from './datahandler';
+import RadialHistogram from './vis/radialHistogram'
 
 // Define global variables
 let container = document.getElementById('map_container');
@@ -95,7 +96,7 @@ const updateInfoBox = (id, d) => {
 	// Find stations in this province:
 	let stations = datahandler.getStationsInRegion(d.properties.statcode);
 	for (let station of stations) {
-		html += `<li>${station.name}</li>`;
+		html += `<li>${station.name} - ${station.station}</li>`;
 	}
 
 	html += "</ul>";
@@ -115,22 +116,22 @@ async function start() {
 
 	// Draw map and wait for the stations
 	let stations = await resize();
-	// Load all the stations files
+	// // Load all the stations files
 	datahandler = new DataHandler(stations);
-	await datahandler.loadAll();
+	await datahandler.load('270');
 
 	// All is now loaded and we are ready to query and create visualizations
 
 	// TODO: initialize visualizations
 	// example
-	console.log('Query range 2014 with ddvec < 80');
+	console.log('Query range 2014');
 	datahandler.queryRange({
-		select: 'STN, DATE, DDVEC',
-		start: '2014-01-01',
-		end: '2015-01-01',
-		where: 'DDVEC < 80',
+		select: 'STN, DATE, CAST(DDVEC as Number) as angle, CAST(FHVEC as Number) as speed, CAST(FG as Number) as avg_speed',
+		start: '1962-12-01',
+		end: '1963-03-01',
 	}).then((d) => {
-		console.log(d)
+		let radial = new RadialHistogram('#map');
+		radial.plotData(d)
 	});
 }
 
