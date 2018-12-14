@@ -9,6 +9,7 @@
     "alasql": "^0.4.11",
     "bootstrap-scss": "^4.1.3",
     "d3": "^5.7.0",
+    "d3-scale-chromatic": "^1.3.3",
     "gh-pages": "^2.0.1"
   },
   "scripts": {
@@ -21,8 +22,8 @@
     "deploy": "gh-pages -d dist"
   },
   "devDependencies": {
-    "sass": "^1.15.1",
     "parcel-bundler": "^1.10.3",
+    "sass": "^1.15.1",
     "shx": "^0.3.2"
   }
 }
