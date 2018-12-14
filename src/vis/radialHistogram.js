@@ -16,12 +16,6 @@ export default class RadialHistogram {
 		this.innerRadius = 20;
 		// Substract 100px from outerRadius so that the legend also fits in the svg
 		this.outerRadius = (Math.min(viewWidth, viewHeight) / 2) - 100;
-
-		this.group = this.svg
-			.append('g')
-			.attr('id', 'mainGroup')
-			.attr('transform', `translate(${viewWidth / 2},${viewHeight / 2})`);
-
 		this.nrOfBands = 9; //up to 9 bands are supported
 
 		this.initAxis();
@@ -49,7 +43,6 @@ export default class RadialHistogram {
 
 	createMainGroup(width, height) {
 		// create group or remove existing
-
 		d3.selectAll("#mainGroup").remove();
 
 		this.group = this.svg
