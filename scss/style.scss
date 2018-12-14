@@ -27,7 +27,24 @@ body {
 	cursor: pointer;
 }
 
-#map > path.hover {
-	fill: orange;
+#map.hover > path:not(.hover) {
+	fill-opacity: .7;
 }
 
+#map > path.hover {
+	fill-opacity: 1;
+	filter: saturate(2) drop-shadow(1px 1px 2px rgba(0, 0, 0, .5));
+}
+
+.label {
+	paint-order: stroke;
+	z-index: 10;
+	pointer-events: none;
+	text-anchor: middle;
+	font-size: 15px;
+	font-family: Open Sans, sans-serif;
+	font-weight: 900;
+	fill: white;
+	stroke: black;
+	stroke-width: 3;
+}
