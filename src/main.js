@@ -2,91 +2,15 @@ import "@babel/polyfill";
 import * as d3 from 'd3';
 import DataHandler from './datahandler';
 import RadialHistogram from './vis/radialHistogram'
+import Choropleth from "./vis/choropleth";
 
 // Define global variables
-let container = document.getElementById('map_container');
-let map = d3.select('#map');
-let
-	viewWidth,
-	viewHeight,
-	projection,
-	path
-;
+let map;
+
 // Global data variables
 let
 	datahandler
 ;
-
-const calculateWH = () => {
-	// Calculate inner element size
-	let style = getComputedStyle(container);
-	let elementWidth = container.clientWidth;
-	let elementHeight = container.clientHeight;
-	viewWidth = elementWidth - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom);
-	viewHeight = elementHeight - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
-
-	// Set svg attribute size
-	map = map
-		.attr('width', viewWidth)
-		.attr('height', viewHeight);
-};
-
-const drawMap = (url) => {
-	return d3.json(url).then((mapdata) => {
-		calculateWH();
-		// Mercator projection is worldmap on a square
-		projection = d3.geoMercator().fitSize([viewWidth, viewHeight], mapdata);
-
-		// Fit projection to size
-		projection = projection.fitSize([viewWidth, viewHeight], mapdata);
-		path = d3.geoPath().projection(projection);
-
-		// create group or use existing one
-		d3.selectAll("#map *").remove();
-
-		// features paths
-		map.selectAll('path')
-			.data(mapdata.features)
-			.enter()
-			.append('path')
-			.attr('d', path)
-			.attr('vector-effect', 'non-scaling-stroke') // keeps stroke-width the same if we transform
-			.on('mouseover', (d, i, nodes) => {
-				d3.select(nodes[i]).classed('hover', true)
-			})
-			.on('mouseout', (d, i, nodes) => {
-				d3.select(nodes[i]).classed('hover', false)
-			})
-			.on('click', (d) => updateInfoBox("example", d));
-
-		return;
-	}).catch((err) => {
-		console.error(`Error during reading geoJSON with url: ${url}`);
-		console.error(err)
-	});
-};
-
-const drawStations = (url) => {
-	return d3.json(url).then((stations) => {
-		// Draw stations as svg circle
-		let points = map.append('g');
-		points
-			.selectAll('circle')
-			.data(stations)
-			.enter()
-			.append('circle')
-			.attr('cx', (d) => projection([d.lon, d.lat])[0])
-			.attr('cy', (d) => projection([d.lon, d.lat])[1])
-			.attr('r', 3)
-			.style('fill', 'red');
-
-		// return stations for later reference
-		return stations
-	}).catch((err) => {
-		console.error(`Error during reading the stations with url: ${url}`);
-		console.error(err)
-	});
-};
 
 const updateInfoBox = (id, d) => {
 	let el = document.getElementById(id);
@@ -103,36 +27,57 @@ const updateInfoBox = (id, d) => {
 	el.innerHTML = html;
 };
 
-async function resize() {
-	// TODO: create seperate resize handler so we dont reload files
-	// First draw the map and then the stations because we need the projection
-	await drawMap("./geoJSON/provincie_2017.json");
-	return await drawStations("./knmi/stations.json");
-}
+// Load data and start!
+Promise.all([
+	d3.json("./geoJSON/provincie_2017.json"),
+	d3.json("./knmi/stations.json"),
+]).then(function (files) {
+	return start(files[0], files[1]);
+}).catch(function (err) {
+	throw err;
+});
 
-async function start() {
-	// Set resize handler
-	d3.select(window).on('resize', resize);
+function start(mapdata, stationdata) {
 
 	// Draw map and wait for the stations
-	let stations = await resize();
-	// // Load all the stations files
+	let stations = stationdata;
+	map = new Choropleth("map_container", "#map", mapdata, stationdata);
+	map.drawMap();
+	map.addEventHandler("click", (d) => updateInfoBox("example", d));
+
+	// Load all the stations files
 	datahandler = new DataHandler(stations);
-	await datahandler.load('270');
 
-	// All is now loaded and we are ready to query and create visualizations
+	// Promise.all([datahandler.load('350'), datahandler.load('370')]).then(() => {
+	datahandler.loadAll().then(() => {
 
-	// TODO: initialize visualizations
-	// example
-	console.log('Query range 2014');
-	datahandler.queryRange({
-		select: 'STN, DATE, CAST(DDVEC as Number) as angle, CAST(FHVEC as Number) as speed, CAST(FG as Number) as avg_speed',
-		start: '1962-12-01',
-		end: '1963-03-01',
-	}).then((d) => {
-		let radial = new RadialHistogram('#map');
-		radial.plotData(d)
+		let winter = {
+			select: 'STN, DATE, TG as measurement',
+			start: '1963-01-05',
+			end: '1963-01-10'
+		};
+
+		let zomer = {
+			select: 'STN, DATE, TG as measurement',
+			start: '2017-07-01',
+			end: '2017-07-31'
+		};
+
+		let lente = {
+			select: 'STN, DATE, TG as measurement',
+			start: '2014-03-21',
+			end: '2014-06-31'
+		};
+
+		// Load choropleth
+		datahandler.queryRange(
+			lente
+		).then((d) => {
+			map.plotData(d);
+		});
+
 	});
+
+
 }
 
-start();
