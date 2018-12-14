@@ -89,10 +89,11 @@ export default class RadialHistogram {
 			.attr("y", 9)
 			.attr("dy", "0.35em")
 			.text((d) => {
-				// measurements were in (0.1 / m/s)
+				// convert to kmh
+				let vals = d.split('-');
+				vals = vals.map((v) => Math.round((parseInt(v) * 0.1) * 3.6));
 
-				// console.log(d)
-				return d;
+				return `${vals[0]} - ${vals[1]} km/h`;
 			})
 			.style("font-size", 12);
 	}
@@ -190,7 +191,7 @@ export default class RadialHistogram {
 		// SpeedRange
 		// We divide the speed range in nrOfBands parts
 		// D3.ticks is not used because it returns unpredictable amount of steps
-		let stepSize = maxSpeed / this.nrOfBands;
+		let stepSize = (maxSpeed)  / this.nrOfBands;
 		// round to nearest integer that is dividable by 5
 		stepSize = Math.ceil(stepSize / 5) * 5;
 
@@ -210,7 +211,6 @@ export default class RadialHistogram {
 
 	transformData(data, maxSpeed) {
 		// Changes 0-360 degree vector to named direction
-		console.log(data)
 		let direction = d3.scaleQuantize()
 			.domain([0, 360])
 			.range(this.directionRange);
@@ -263,8 +263,9 @@ export default class RadialHistogram {
 
 	plotData(data) {
 		let maxSpeed = d3.max(data, (d) => d.speed);
-		// TODO: find way to compute the amount of days from the data
-		let totalDays = data.length;
+		let totalDays = d3.nest()
+			.key((d) => d.date)
+			.entries(data).length;
 
 		this.createMainGroup(this.viewWidth, this.viewHeight);
 

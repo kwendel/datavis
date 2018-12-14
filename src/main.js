@@ -114,7 +114,7 @@ async function start() {
 	// example
 	console.log('Query range 2014');
 	datahandler.queryRange({
-		select: 'STN, DATE, CAST(DDVEC as Number) as angle, CAST(FHVEC as Number) as speed, CAST(FG as Number) as avg_speed',
+		select: 'STN, DATE as date, CAST(DDVEC as Number) as angle, CAST(FHVEC as Number) as speed, CAST(FG as Number) as avg_speed',
 		start: '1962-12-01',
 		end: '2014-03-01',
 	}).then((d) => {
