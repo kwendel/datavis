@@ -10,7 +10,7 @@ body {
 	min-height: 100vh;
 }
 
-#map_container {
+.vis-container {
 	padding: 1rem;
 	min-height: 600px;
 }
@@ -29,5 +29,9 @@ body {
 
 #map > path.hover {
 	fill: orange;
+}
+
+.hidden {
+	display: none;
 }
 

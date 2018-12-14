@@ -2,13 +2,11 @@ import "@babel/polyfill";
 import * as d3 from 'd3';
 import DataHandler from './datahandler';
 import RadialHistogram from './vis/radialHistogram'
+import {calculateSVGWH} from "./utils";
 
 // Define global variables
-let container = document.getElementById('map_container');
 let map = d3.select('#map');
 let
-	viewWidth,
-	viewHeight,
 	projection,
 	path
 ;
@@ -17,23 +15,12 @@ let
 	datahandler
 ;
 
-const calculateWH = () => {
-	// Calculate inner element size
-	let style = getComputedStyle(container);
-	let elementWidth = container.clientWidth;
-	let elementHeight = container.clientHeight;
-	viewWidth = elementWidth - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom);
-	viewHeight = elementHeight - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
-
-	// Set svg attribute size
-	map = map
-		.attr('width', viewWidth)
-		.attr('height', viewHeight);
-};
-
 const drawMap = (url) => {
 	return d3.json(url).then((mapdata) => {
-		calculateWH();
+		let {viewWidth, viewHeight} = calculateSVGWH('map_container');
+		map = map
+			.attr('width', viewWidth)
+			.attr('height', viewHeight);
 		// Mercator projection is worldmap on a square
 		projection = d3.geoMercator().fitSize([viewWidth, viewHeight], mapdata);
 
@@ -106,6 +93,7 @@ const updateInfoBox = (id, d) => {
 async function resize() {
 	// TODO: create seperate resize handler so we dont reload files
 	// First draw the map and then the stations because we need the projection
+
 	await drawMap("./geoJSON/provincie_2017.json");
 	return await drawStations("./knmi/stations.json");
 }
@@ -128,9 +116,9 @@ async function start() {
 	datahandler.queryRange({
 		select: 'STN, DATE, CAST(DDVEC as Number) as angle, CAST(FHVEC as Number) as speed, CAST(FG as Number) as avg_speed',
 		start: '1962-12-01',
-		end: '1963-03-01',
+		end: '2014-03-01',
 	}).then((d) => {
-		let radial = new RadialHistogram('#map');
+		let radial = new RadialHistogram('wind_container', '#wind');
 		radial.plotData(d)
 	});
 }
