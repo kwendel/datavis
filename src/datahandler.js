@@ -44,7 +44,7 @@ export default class DataHandler {
 	//			where: 'DDVEC < 80',
 	// 			orderby: 'DDVEC asc'
 	// ));
-	query({select, where, orderby}, stations = []) {
+	query({select, where, orderby, groupby, limit}, stations = []) {
 		// Make array with data that we are going to query
 		let searchIn = [];
 		for (let s of stations) {
@@ -61,8 +61,14 @@ export default class DataHandler {
 		if (where) {
 			q = q + ` WHERE ${where}`;
 		}
+		if (groupby) {
+			q = q + ` GROUP BY ${groupby}`;
+		}
 		if (orderby) {
 			q = q + ` ORDER BY ${orderby}`;
+		}
+		if (limit) {
+			q = q + ` LIMIT ${limit}`;
 		}
 
 		// Return a promise with the result
@@ -78,7 +84,7 @@ export default class DataHandler {
 	// 			end: '2015-01-01',
 	// 			where: 'DDVEC < 80',
 	// 		}))
-	queryRange({select, where, start, end}, stations = []) {
+	queryRange({select, where, groupby, start, end}, stations = []) {
 		let whereClause = `DATE BETWEEN '${start}' AND '${end}'`;
 		if (where) {
 			whereClause = whereClause + ` AND ${where}`;
@@ -86,8 +92,8 @@ export default class DataHandler {
 		return this.query({
 				select: select,
 				where: whereClause,
-				orderby: `DATE asc`
-				// orderby: `DDVEC asc`
+				orderby: `DATE asc`,
+				groupby: groupby
 			},
 			stations);
 

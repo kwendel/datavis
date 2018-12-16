@@ -32,9 +32,7 @@ export default class Choropleth {
 		this.projection = d3.geoMercator().fitSize([this.viewWidth, this.viewHeight], this.mapdata);
 		this.path = d3.geoPath().projection(this.projection);
 
-
-		// create group or use existing one
-		d3.selectAll("#map *").remove();
+		this.map.selectAll("#map *").remove();
 
 		// features paths
 		this.map.selectAll('path')
@@ -75,17 +73,12 @@ export default class Choropleth {
 			.append('circle')
 			.attr('cx', (d) => this.projection([d.lon, d.lat])[0])
 			.attr('cy', (d) => this.projection([d.lon, d.lat])[1])
-			.attr('r', 6)
-			.style('fill', 'white')
-			.style('fill-opacity', .75)
-			.style('stroke', 'black')
-			.style('stroke-width', 1);
+			.attr('r', 5);
 	}
 
 	addEventHandler(event, callback) {
 		this.map.selectAll('path').on(event, callback);
 	}
-
 
 	/**
 	 * Applies a linear color scale with this area's value at the center.
@@ -93,6 +86,19 @@ export default class Choropleth {
 	 * @param d Area/province to use as baseline.
 	 */
 	setBaseline(d) {
+
+		// Don't apply this visualization on provinces without data
+		if (typeof this.data[d.id] == "undefined" || isNaN(this.data[d.id])) return;
+
+		// Disable this visualization when clicking the active province
+		if (typeof this.activeBaseline != "undefined" && this.activeBaseline === d) {
+			this.activeBaseline = null;
+			this.plot();
+			return;
+		}
+
+		// Set active province
+		this.activeBaseline = d;
 
 		// Calculate domain based on min/max distance to clicked value
 		let [min, max] = d3.extent(Object.values(this.data));
@@ -104,6 +110,17 @@ export default class Choropleth {
 
 		// Recolor provinces
 		this.map.selectAll("path").style("fill", x => this.color(x, this.minMaxScale))
+
+		// Reset labels
+		this.drawLabels(_d => {
+			let val = this.data[_d.id];
+			if (isNaN(val)) return "";
+			if (d.id !== _d.id) val -= mean;
+			let str = Number(val).toFixed(1) + "°C"
+			if (val > 0 && d.id !== _d.id) str = "+" + str;
+			// TODO: highlight label in province
+			return str;
+		});
 
 		// Unset hover
 		d3.selectAll("*.hover").classed("hover", false);
@@ -162,11 +179,24 @@ export default class Choropleth {
 	 *
 	 * @param data List of records. Required fields: 'STN', 'DATE', 'measurement'.
 	 */
-	plotData(data) {
-		this.setData(data);
+	plot() {
 
 		// Color provinces
 		this.map.selectAll("path").style("fill", d => this.color(d));
+
+		this.drawLabels(d => {
+			let val = this.data[d.id];
+			return isNaN(val) ? "" : Number(val).toFixed(1) + "°C";
+		});
+
+		// Add click handler for delta comparisons
+		this.addEventHandler("click", d => this.setBaseline(d));
+	}
+
+	drawLabels(func) {
+
+		// Remove existing labels
+		this.labels.selectAll(".label").remove()
 
 		// Draw labels
 		this.labels.selectAll(".label")
@@ -176,13 +206,7 @@ export default class Choropleth {
 			.attr("class", "label")
 			.attr("x", d => this.path.centroid(d)[0])
 			.attr("y", d => this.path.centroid(d)[1])
-			.text(d => {
-				let val = this.data[d.id];
-				return isNaN(val) ? "" : Number(val).toFixed(1) + "°C";
-			});
-
-		// Add click handler for delta comparisons
-		this.addEventHandler("click", (d) => this.setBaseline(d));
+			.text(func);
 	}
 
 	/**

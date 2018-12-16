@@ -3,28 +3,44 @@ import * as d3 from 'd3';
 import DataHandler from './datahandler';
 import RadialHistogram from './vis/radialHistogram'
 import Choropleth from "./vis/choropleth";
+import Timeline from "./vis/timeline";
 
 // Define global variables
-let map;
+let datahandler;
 
-// Global data variables
-let
-	datahandler
-;
+const initTimeline = (containerId, datahandler) => {
 
-const updateInfoBox = (id, d) => {
-	let el = document.getElementById(id);
+	// Select container with d3
+	let container = d3.select(containerId);
 
-	let html = `<h3>${d.properties.statnaam}</h3><p>Stations in this (land) area:</p><ul>`;
+	// Define interesting time periods
+	let events = [
+		{
+			times: [{"starting_time": 1355752800000, "display": "circle"},
+				{"starting_time": 1355767900000, "ending_time": 1355774400000}]
+		},
+	];
 
-	// Find stations in this province:
-	let stations = datahandler.getStationsInRegion(d.properties.statcode);
-	for (let station of stations) {
-		html += `<li>${station.name} - ${station.station}</li>`;
-	}
+	// Get min/max times
+	Promise.all([datahandler.query({
+		select: "DATE",
+		orderby: "DATE ASC",
+		limit: 1
+	}), datahandler.query({
+		select: "DATE",
+		orderby: "DATE DESC",
+		limit: 1
+	})]).then(values => {
 
-	html += "</ul>";
-	el.innerHTML = html;
+		let min = values[0][0].DATE, max = values[1][0].DATE;
+
+		console.log(new Date(min));
+		console.log(new Date(max));
+
+		// TODO: timeline brush/zoom selection
+
+	});
+
 };
 
 // Load data and start!
@@ -39,42 +55,91 @@ Promise.all([
 
 function start(mapdata, stationdata) {
 
+
 	// Draw map and wait for the stations
 	let stations = stationdata;
-	map = new Choropleth("map_container", "#map", mapdata, stationdata);
+	let map = new Choropleth("map_container", "#map", mapdata, stationdata);
 	map.drawMap();
 	map.addEventHandler("click", (d) => updateInfoBox("example", d));
 
 	// Load all the stations files
 	datahandler = new DataHandler(stations);
 
-	// Promise.all([datahandler.load('350'), datahandler.load('370')]).then(() => {
-	datahandler.loadAll().then(() => {
+	datahandler.loadAll("350").then(() => {
 
-		let winter = {
-			select: 'STN, DATE, TG as measurement',
-			start: '1963-01-05',
-			end: '1963-01-10'
-		};
+		let buttonGroup = d3.select("#test");
 
-		let zomer = {
-			select: 'STN, DATE, TG as measurement',
-			start: '2017-07-01',
-			end: '2017-07-31'
-		};
+		buttonGroup.selectAll("*").remove();
 
-		let lente = {
-			select: 'STN, DATE, TG as measurement',
-			start: '2014-03-21',
-			end: '2014-06-31'
-		};
+		buttonGroup
+			.append("button")
+			.classed("btn btn-primary", true)
+			.text("Winter '63")
+			.on("click", () => {
 
-		// Load choropleth
-		datahandler.queryRange(
-			lente
-		).then((d) => {
-			map.plotData(d);
-		});
+				datahandler.queryRange({
+					select: 'STN, DATE, TG as measurement',
+					start: '1963-01-05',
+					end: '1963-01-10'
+				}).then((d) => {
+					map.setData(d);
+					map.plot();
+				});
+
+			});
+
+		buttonGroup
+			.append("button")
+			.classed("btn btn-primary", true)
+			.text("Juli 2017")
+			.on("click", () => {
+
+				datahandler.queryRange({
+					select: 'STN, DATE, TG as measurement',
+					start: '2017-07-01',
+					end: '2017-07-31'
+				}).then((d) => {
+					map.setData(d);
+					map.plot();
+				});
+
+			});
+
+		buttonGroup
+			.append("button")
+			.classed("btn btn-primary", true)
+			.text("Lente 2014")
+			.on("click", () => {
+
+				datahandler.queryRange({
+					select: 'STN, DATE, TG as measurement',
+					start: '2014-03-20',
+					end: '2014-06-21'
+				}).then((d) => {
+					map.setData(d);
+					map.plot();
+				});
+
+			});
+
+		buttonGroup
+			.append("button")
+			.classed("btn btn-primary", true)
+			.text("Zomer 2018")
+			.on("click", () => {
+
+				datahandler.queryRange({
+					select: 'STN, DATE, TG as measurement',
+					start: '2018-06-21',
+					end: '2018-09-23'
+				}).then((d) => {
+					map.setData(d);
+					map.plot();
+				});
+
+			});
+
+		let timeline = new Timeline("timeline_container", "#timeline");
 
 	});
 

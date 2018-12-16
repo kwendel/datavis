@@ -21,8 +21,8 @@
     "deploy": "gh-pages -d dist"
   },
   "devDependencies": {
-    "sass": "^1.15.1",
     "parcel-bundler": "^1.10.3",
+    "sass": "^1.15.1",
     "shx": "^0.3.2"
   }
 }
