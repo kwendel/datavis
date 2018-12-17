@@ -3,6 +3,7 @@ import * as d3 from 'd3';
 import DataHandler from './datahandler';
 import RadialHistogram from './vis/radialHistogram'
 import {calculateSVGWH} from "./utils";
+import Histogram from "./vis/histogram";
 
 // Define global variables
 let map = d3.select('#map');
@@ -106,21 +107,33 @@ async function start() {
 	let stations = await resize();
 	// // Load all the stations files
 	datahandler = new DataHandler(stations);
-	await datahandler.load('270');
+	await Promise.all([datahandler.load('270'), datahandler.load('310')]);
+	// await datahandler.loadAll()
 
 	// All is now loaded and we are ready to query and create visualizations
 
 	// TODO: initialize visualizations
 	// example
-	console.log('Query range 2014');
+	// console.log('Query range 2014');
+	// datahandler.queryRange({
+	// 	select: 'STN, DATE as date, CAST(DDVEC as Number) as angle, CAST(FHVEC as Number) as speed, CAST(FG as Number) as avg_speed',
+	// 	start: '1962-12-01',
+	// 	end: '2014-03-01',
+	// }).then((d) => {
+	// 	let radial = new RadialHistogram('wind_container', '#wind');
+	// 	radial.plotData(d)
+	// });
+
 	datahandler.queryRange({
-		select: 'STN, DATE as date, CAST(DDVEC as Number) as angle, CAST(FHVEC as Number) as speed, CAST(FG as Number) as avg_speed',
-		start: '1962-12-01',
+		select: 'STN, DATE as date, CAST(SQ as Number) as duration, CAST(SP as Number) as percentage',
+		start: '2013-12-01',
 		end: '2014-03-01',
 	}).then((d) => {
-		let radial = new RadialHistogram('wind_container', '#wind');
-		radial.plotData(d)
+		let sun = new Histogram('hist_container', '#hist');
+		sun.plotData(d)
 	});
+
+
 }
 
 start();
