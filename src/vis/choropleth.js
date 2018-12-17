@@ -18,6 +18,8 @@ export default class Choropleth {
 
 		this.station_area_map = new Map();
 		this.stationdata.map(x => this.station_area_map.set(x.station, x.province_code));
+
+		this.active_stations = new Set();
 	}
 
 	/**
@@ -50,9 +52,7 @@ export default class Choropleth {
 				this.map.classed("hover", false);
 			});
 
-		// Draw stations
-		this.addStations();
-
+		this.stations = this.map.append('g').attr("class", "stations-group");
 		this.labels = this.map.append("g").attr("class", "label-group");
 
 	}
@@ -62,13 +62,15 @@ export default class Choropleth {
 	 */
 	addStations() {
 
-		// Remove existing stations (e.g. on resize)
-		d3.selectAll("#map g").remove();
+		// Filter active stations
+		let stations = this.stationdata.filter(station => this.active_stations.has(station.station));
+
+		// Remove all stations
+		this.stations.selectAll('circle').remove();
 
 		// Add stations
-		let points = this.map.append('g');
-		points.selectAll('circle')
-			.data(this.stationdata)
+		this.stations.selectAll('circle')
+			.data(stations)
 			.enter()
 			.append('circle')
 			.attr('cx', (d) => this.projection([d.lon, d.lat])[0])
@@ -144,11 +146,16 @@ export default class Choropleth {
 		// Calculate averages for the selected data, per province
 		let data = {};
 
+		this.active_stations = new Set();
+
 		// TODO: might be improved with native d3 code
 		measurements.forEach((row) => {
 
+			let stnID = parseInt(row.STN);
+			this.active_stations.add(stnID);
+
 			// Get area code
-			let PV = this.station_area_map.get(parseInt(row.STN));
+			let PV = this.station_area_map.get(stnID);
 
 			// Add measurements to data object
 			if (typeof (data[PV]) == "undefined") data[PV] = {};
@@ -184,6 +191,10 @@ export default class Choropleth {
 		// Color provinces
 		this.map.selectAll("path").style("fill", d => this.color(d));
 
+		// Draw stations
+		this.addStations();
+
+		// Draw labels
 		this.drawLabels(d => {
 			let val = this.data[d.id];
 			return isNaN(val) ? "" : Number(val).toFixed(1) + "°C";
@@ -218,11 +229,8 @@ export default class Choropleth {
 	 */
 	color(d, scale) {
 		if (typeof scale == "undefined") scale = this.colorScale;
-
 		let value = this.data[d.id];
-		if (typeof (value) == "undefined") return "url(#na)";
-
-		return scale(value);
+		return typeof value == "undefined" ? "url(#na)" : scale(value);
 	}
 
 }

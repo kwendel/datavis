@@ -2,40 +2,97 @@
 <html>
 <head>
 	<title>IN4086 - Data Visualization</title>
-	<link rel=stylesheet href=scss/style.scss>
+	<link rel=stylesheet href="scss/style.scss">
+	<link rel=stylesheet href="node_modules/flatpickr/dist/flatpickr.min.css">
 </head>
 <body>
 
+<div class="h-100 row align-items-center" id="loading">
+	<div class="col">
+		<div class="progress w-50">
+			<div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar"></div>
+		</div>
+		<h1>Loading visualization...</h1>
+		<p id="funny_loading_quote"></p>
+	</div>
+</div>
+
 <div id="wrapper" class="d-flex flex-column container-fluid">
+
+	<svg height="0" width="0" xmlns="http://www.w3.org/2000/svg" version="1.1">
+		<defs>
+			<pattern id="na" patternUnits="userSpaceOnUse" width="4" height="4">
+				<image xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAYAAACp8Z5+AAAAD0lEQVQImWNgQAX/yeAAAIHCA/0RE2WAAAAAAElFTkSuQmCC"
+					   x="0" y="0" width="4" height="4">
+				</image>
+			</pattern>
+		</defs>
+	</svg>
 
 	<div class="flex-grow-1 d-flex flex-row row">
 
 		<div id="sidebar" class="col-sm-12 col-md-5">
-			<h3>Historical Dutch Weather</h3>
-			<p>Choose a feature to visualize the selected time period.</p>
 
-			<div id="test" class="btn-group">
+			<div id="selectionPane">
+
+				<h3>Historical Dutch Weather</h3>
+				<p>Choose a feature to visualize the selected time period.</p>
+
+				<div id="test" class="btn-group">
+
+				</div>
+
+				<h4>Date range</h4>
+
+				<form class="form-horizontal">
+					<div class="from-group row">
+						<label for="datepicker_min" class="col-sm-3 col-form-label">Date range:</label>
+						<div class="col-sm-9">
+							<div class="input-group">
+								<input id="datepicker_min" type="text" class="form-control">
+								<input id="datepicker_max" type="text" class="form-control">
+							</div>
+						</div>
+					</div>
+					<div class="from-group row">
+						<label for="datepicker_min" class="col-sm-3 col-form-label">Seasons:</label>
+						<div class="col-sm-9">
+							<div class="btn-group btn-group-toggle d-flex" data-toggle="buttons" id="season_selection">
+								<label class="btn btn-secondary w-100 active">
+									<input type="radio" name="options" id="all" autocomplete="off" data-sql=""
+										   checked> All
+								</label>
+								<label class="btn btn-success w-100">
+									<input type="radio" name="options" id="spring" autocomplete="off"
+										   data-sql="MONTH(DATE) IN (4,5,6)"> Springs
+								</label>
+								<label class="btn btn-danger w-100">
+									<input type="radio" name="options" id="summer" autocomplete="off"
+										   data-sql="MONTH(DATE) IN (7,8,9)"> Summers
+								</label>
+								<label class="btn btn-warning w-100">
+									<input type="radio" name="options" id="autumn" autocomplete="off"
+										   data-sql="MONTH(DATE) IN (10,11,12)"> Autumns
+								</label>
+								<label class="btn btn-info w-100">
+									<input type="radio" name="options" id="winter" autocomplete="off"
+										   data-sql="MONTH(DATE) IN (1,2,3)"> Winters
+								</label>
+							</div>
+						</div>
+					</div>
+				</form>
+
+				<h4>Feature</h4>
+				<p>Temperature</p>
+
+				<h4>Visualize!</h4>
+				<p>
+					<button class="btn btn-primary" type="button" id="visualize">Run</button>
+				</p>
 
 			</div>
 
-			<div id="timeline_container">
-				<svg id="timeline"></svg>
-			</div>
-
-			<svg height="0" width="0" xmlns="http://www.w3.org/2000/svg" version="1.1">
-				<defs>
-					<pattern id="na" patternUnits="userSpaceOnUse" width="4" height="4">
-						<image xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAYAAACp8Z5+AAAAD0lEQVQImWNgQAX/yeAAAIHCA/0RE2WAAAAAAElFTkSuQmCC"
-							   x="0" y="0" width="4" height="4">
-						</image>
-					</pattern>
-					<linearGradient id="rdylbu" x2="1" y2="1" gradientTransform="rotate(45)">
-						<stop offset="0%" stop-color="#91bfdb" />
-						<stop offset="50%" stop-color="#ffffbf" />
-						<stop offset="100%" stop-color="#fc8d59" />
-					</linearGradient>
-				</defs>
-			</svg>
 
 		</div>
 
@@ -50,6 +107,8 @@
 	</div>
 </div>
 
+<script type="text/javascript" src="node_modules/jquery/dist/jquery.slim.min.js"></script>
+<script type="text/javascript" src="node_modules/bootstrap/js/dist/button.js"></script>
 <script type="text/javascript" src="src/main.js"></script>
 
 </body>
