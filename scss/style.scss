@@ -46,3 +46,58 @@ body {
   pointer-events: all;
 }
 
+
+#sun_container  {
+	.lower-capacity {
+		opacity: 0.2;
+	}
+
+  	.legend {
+		cursor: pointer;
+		font: 15px sans-serif;
+		fill: black;
+		font-weight: bold;
+	}
+
+	.bar-text {
+      	fill: black;
+		font: 12px sans-serif;
+		font-weight: bold;
+	}
+
+	.rect-normal {
+		fill: #f4a582;
+
+	}
+
+	.rect-compare {
+		fill: #ca0020;
+	}
+}
+#rain_container  {
+	.lower-capacity {
+		opacity: 0.2;
+	}
+
+	.legend {
+		cursor: pointer;
+		font: 15px sans-serif;
+		fill: black;
+		font-weight: bold;
+	}
+
+	.bar-text {
+		fill: black;
+		font: 12px sans-serif;
+		font-weight: bold;
+	}
+
+	.rect-normal {
+		fill: #92c5de;
+
+	}
+
+	.rect-compare {
+		fill: #0571b0;
+	}
+}

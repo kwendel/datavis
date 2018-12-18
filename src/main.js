@@ -3,7 +3,8 @@ import * as d3 from 'd3';
 import DataHandler from './datahandler';
 import RadialHistogram from './vis/radialHistogram'
 import {calculateSVGWH} from "./utils";
-import Histogram from "./vis/histogram";
+// import Histogram from "./vis/histogram";
+import BarChart from "./vis/barChart"
 
 // Define global variables
 let map = d3.select('#map');
@@ -108,7 +109,7 @@ async function start() {
 	// // Load all the stations files
 	datahandler = new DataHandler(stations);
 	// await Promise.all([datahandler.load('270'), datahandler.load('310')]);
-	await datahandler.loadAll([270, 310, 260, 209, 210, 258, 267, 269 ]); //, '260']);
+	await datahandler.loadAll([270, 310, 260, 209, 210, 258, 267, 269]); //, '260']);
 
 	// All is now loaded and we are ready to query and create visualizations
 
@@ -124,14 +125,37 @@ async function start() {
 	// 	radial.plotData(d)
 	// });
 
-	datahandler.queryRange({
-		select: 'STN, DATE as date, CAST(SQ as Number) as duration, CAST(SP as Number) as percentage',
-		start: '2010-12-01',
-		end: '2014-03-01',
-	}).then((d) => {
-		let sun = new Histogram('hist_container', '#hist', stations);
-		sun.plotData(d)
+
+	// TODO: Sun barchart
+	// let normal = await datahandler.queryRange({
+	// 	select: 'STN, DATE as date, CAST(SQ as Number) as duration, CAST(SP as Number) as percentage',
+	// 	start: '2000-01-01',
+	// 	end: '2017-01-01'
+	// });
+	//
+	// let compareWith = await datahandler.queryRange({
+	// 	select: 'STN, DATE as date, CAST(SQ as Number) as duration, CAST(SP as Number) as percentage',
+	// 	start: '2003-01-01',
+	// 	end: '2004-01-01'
+	// });
+
+	// let sun = new BarChart('sun_container', '#sun', stations, 'Amount of sunshine');
+	// sun.plotData(normal, compareWith, 'MONTH(DATE) IN (12, 1, 2)', )
+
+	// TODO: Rain barchart
+	let normal = await datahandler.queryRange({
+		select: 'STN, DATE as date, CAST(DR as Number) as duration, CAST(RH as Number) as percentage',
+		start: '2000-01-01',
+		end: '2017-01-01'
 	});
+
+	let compareWith = await datahandler.queryRange({
+		select: 'STN, DATE as date, CAST(DR as Number) as duration, CAST(RH as Number) as percentage',
+		start: '2003-01-01',
+		end: '2004-01-01'
+	});
+	let rain = new BarChart('rain_container', '#rain', stations, 'Amount of rainfall');
+	rain.plotData(normal, compareWith, 'MONTH(DATE) IN (12, 1, 2)', 'Amount of rainfall ');
 
 
 }
