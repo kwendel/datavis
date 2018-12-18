@@ -1,6 +1,6 @@
 import "@babel/polyfill";
 import * as d3 from 'd3';
-import flatpickr from "flatpickr";
+// import * as dp from "daterangepicker";
 import $ from "jquery";
 
 import DataHandler from './datahandler';
@@ -8,10 +8,10 @@ import RadialHistogram from './vis/radialHistogram'
 import Choropleth from "./vis/choropleth";
 import LoadingScreen from "./vis/loading";
 
+import * as daterangepicker from "daterangepicker";
+
 // Define global variables
 let datahandler, map;
-
-let loadingScreen = new LoadingScreen("#loading");
 
 // Load data and start!
 Promise.all([
@@ -25,25 +25,21 @@ Promise.all([
 
 
 function progressPromise(promises, tickCallback) {
-	var len = promises.length;
-	var progress = 0;
+	let len = promises.length, progress = 0;
 
 	function tick(promise) {
-		promise.then(function () {
+		promise.then(() => {
 			progress++;
 			tickCallback(progress, len);
 		});
 		return promise;
 	}
 
-	console.log(promises)
-
 	return Promise.all(promises.map(tick));
 }
 
 
 function start(mapdata, stationdata) {
-
 
 	// Draw map and wait for the stations
 	let stations = stationdata;
@@ -53,8 +49,11 @@ function start(mapdata, stationdata) {
 	// Load all the stations files
 	datahandler = new DataHandler(stations);
 
-	progressPromise(datahandler.loadAll(), (progress, len) => loadingScreen.updateProgress(progress, len)).then(() => {
+	let loadingInterval = LoadingScreen.start();
 
+	progressPromise(datahandler.loadAll(), LoadingScreen.updateProgress).then(() => {
+
+		LoadingScreen.stop(loadingInterval);
 
 		// Get min/max dates
 		Promise.all([datahandler.query({
@@ -71,25 +70,32 @@ function start(mapdata, stationdata) {
 			let min = new Date(values[0][0].DATE), max = new Date(values[1][0].DATE);
 
 			// Add datepickers
-			let datepicker_min = flatpickr("#datepicker_min", {
+			let datepicker = $("#datepicker").daterangepicker({
 				minDate: min,
 				maxDate: max,
-				defaultDate: min
-			});
+				startDate: min,
+				endDate: max,
+				showDropdowns: true,
+				alwaysShowCalendars: true,
+				autoApply: true,
+				autoUpdateInput: true,
+				linkedCalendars: false,
+				ranges: {
+					"Winter '63": [new Date("1962-12-21"), new Date("1963-03-21")],
+					"Juli 2018": [new Date("2018-07-01"), new Date("2018-07-31")]
+				},
 
-			let datepicker_max = flatpickr("#datepicker_max", {
-				minDate: min,
-				maxDate: max,
-				defaultDate: max
 			});
 
 			// Button click handler
 			$("#visualize").off("click").on("click", () => {
 
-				// Get settings
-				let startDate = datepicker_min.selectedDates[0],
-					endDate = datepicker_max.selectedDates[0],
+				let startDate = $('#datepicker').data('daterangepicker').startDate.toDate(),
+					endDate = $('#datepicker').data('daterangepicker').endDate.toDate(),
 					seasonQuery = $("#season_selection input:checked").data("sql");
+
+				console.log(startDate)
+				console.log(endDate)
 
 				runVis(startDate, endDate, seasonQuery);
 

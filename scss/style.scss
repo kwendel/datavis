@@ -40,7 +40,7 @@ body {
 	& > path {
 		stroke: black;
 		stroke-width: 1px;
-		fill: lightgrey;
+		fill: transparent;
 		cursor: pointer;
 	}
 
@@ -66,6 +66,25 @@ body {
 		fill-opacity: .8;
 		stroke: black;
 		stroke-width: 1.5;
+	}
+
+	.legend-container {
+
+		transform: translate(20px,10px);
+
+		path {
+			display: none;
+		}
+
+		line {
+			stroke: white;
+		}
+
+		.tick {
+			//font-weight: bold;
+			font-size: 12px;
+			text-align: right;
+		}
 	}
 }
 

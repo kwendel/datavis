@@ -1,4 +1,5 @@
 import * as d3 from 'd3';
+import ContinousLegend from "./continuousLegend";
 
 /**
  * Display colors on map.
@@ -13,13 +14,21 @@ export default class Choropleth {
 		this.mapdata = mapdata;
 		this.stationdata = stationdata;
 
-		this.colorScale = d3.scaleSequential(d3.interpolateRgbBasis(['#C85153', '#FFBA39', '#ffcd07', "#d4e5ee", "#97bee5", "#1d82c5", "#00467d"].reverse())).domain([-5, 20]);
-		this.minMaxScale = d3.scaleLinear().range(['#fc8d59', '#ffffff', '#91bfdb'].reverse());
+		this.temperatureColors = ["#00467d", "#eee", "#FFBA39", "#C85153"];
+		// this.minMaxColors = ['#91bfdb', '#ffffff', '#fc8d59']
+		this.minMaxColors = ['#91bfdb', '#ffffff', '#fc8d59']
+
+		this.colorScale = d3.scaleLinear().domain([-10, 0, 10, 20]).range(this.temperatureColors);
+		this.minMaxScale = d3.scaleLinear().range(this.minMaxColors);
+
+		console.log(this.colorScale(0))
 
 		this.station_area_map = new Map();
 		this.stationdata.map(x => this.station_area_map.set(x.station, x.province_code));
 
 		this.active_stations = new Set();
+
+		this.legend = new ContinousLegend("#test");
 	}
 
 	/**
@@ -124,6 +133,9 @@ export default class Choropleth {
 			return str;
 		});
 
+		// Recolor legend
+		this.legend.legend(this.minMaxScale, this.minMaxColors, this.map, true);
+
 		// Unset hover
 		d3.selectAll("*.hover").classed("hover", false);
 	}
@@ -191,6 +203,9 @@ export default class Choropleth {
 		// Color provinces
 		this.map.selectAll("path").style("fill", d => this.color(d));
 
+		// Update legend
+		this.legend.legend(this.colorScale, this.temperatureColors, this.map);
+
 		// Draw stations
 		this.addStations();
 
@@ -228,6 +243,7 @@ export default class Choropleth {
 	 * @returns {*} Color for province.
 	 */
 	color(d, scale) {
+		if (d == null || d.type !== "Feature") return; // Only color provinces
 		if (typeof scale == "undefined") scale = this.colorScale;
 		let value = this.data[d.id];
 		return typeof value == "undefined" ? "url(#na)" : scale(value);
