@@ -42,6 +42,13 @@ export default class ContinousLegend {
 
 		let domain = colorScale.domain();
 		let min = domain[0], max = domain[domain.length - 1];
+
+		// Fix legend if min == max
+		if (min == max) {
+			min -= 0.01;
+			max += 0.01;
+		}
+
 		let mean = (min + max) / 2;
 		let steps = (max - min) / 5 - 1;
 

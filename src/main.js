@@ -228,11 +228,8 @@ function start(mapdata, stationdata) {
 
 						q += ")";
 
-						console.log(startDate, endDate, q);
-
-						if (valid) {
-							runVis(startDate, endDate, q);
-						}
+						// Create visualization
+						if (valid) doChoropleth(startDate, endDate, q);
 
 						break;
 
@@ -245,12 +242,6 @@ function start(mapdata, stationdata) {
 						break;
 				}
 
-				//
-				// console.log(startDate)
-				// console.log(endDate)
-				//
-				// runVis(startDate, endDate, seasonQuery);
-
 			});
 
 
@@ -262,7 +253,7 @@ function start(mapdata, stationdata) {
 
 }
 
-const runVis = (start, end, q) => {
+const doChoropleth = (start, end, q) => {
 
 	datahandler.queryRange({
 		select: 'STN, DATE, TG as measurement',
