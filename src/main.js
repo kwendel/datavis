@@ -1,6 +1,5 @@
 import "@babel/polyfill";
 import * as d3 from 'd3';
-// import * as dp from "daterangepicker";
 import $ from "jquery";
 
 import DataHandler from './datahandler';
@@ -9,9 +8,17 @@ import Choropleth from "./vis/choropleth";
 import LoadingScreen from "./vis/loading";
 
 import * as daterangepicker from "daterangepicker";
+import "bootstrap/dist/js/bootstrap.bundle";
 
 // Define global variables
 let datahandler, map;
+
+let season_queries = {
+	"spring": "MONTH(DATE) BETWEEN 3 AND 5",
+	"summer": "MONTH(DATE) BETWEEN 6 AND 8",
+	"autumn": "MONTH(DATE) BETWEEN 9 AND 11",
+	"winter": "MONTH(DATE) > 11 OR MONTH(DATE) < 3",
+}
 
 // Load data and start!
 Promise.all([
@@ -21,6 +28,35 @@ Promise.all([
 	return start(files[0], files[1]);
 }).catch(function (err) {
 	throw err;
+});
+
+// Dirty dirty stuff here
+$(document).ready(() => {
+
+	const fixDropdownRadio = (e) => {
+		$(e.currentTarget).dropdown('toggle');
+		$(e.currentTarget).button('toggle');
+	};
+
+	const fixButtonFocus = (e) => {
+		$(e.target).parents('.btn-group').find('label.dropdown-toggle > input:not(:checked)').parent('.active').removeClass('active')
+		$('.dropdown-menu input:checked').parent().parent('li').toggleClass("active", true);
+	};
+
+	const dropdownRadioSelect = (e) => {
+		let $target = $(e.currentTarget),
+			$inp = $target.find('input');
+		setTimeout(() => {
+			let newprop = !$inp.prop("checked");
+			$inp.prop("checked", newprop);
+			$target.parent().toggleClass("active", newprop);
+		}, 0);
+		return false;
+	};
+
+	$("#geo_card .btn-group-toggle .btn.dropdown-toggle").off("click", fixDropdownRadio).on("click", fixDropdownRadio);
+	$("#geo_card .btn-group .btn").off("click", fixButtonFocus).on("click", fixButtonFocus);
+	$('#geo_card .dropdown-menu a').off('click', dropdownRadioSelect).on('click', dropdownRadioSelect);
 });
 
 
@@ -51,7 +87,7 @@ function start(mapdata, stationdata) {
 
 	let loadingInterval = LoadingScreen.start();
 
-	progressPromise(datahandler.loadAll(), LoadingScreen.updateProgress).then(() => {
+	progressPromise(datahandler.loadAll([350]), LoadingScreen.updateProgress).then(() => {
 
 		LoadingScreen.stop(loadingInterval);
 
@@ -69,8 +105,7 @@ function start(mapdata, stationdata) {
 			// Create JS date objects from extent
 			let min = new Date(values[0][0].DATE), max = new Date(values[1][0].DATE);
 
-			// Add datepickers
-			let datepicker = $("#datepicker").daterangepicker({
+			let dp_settings = {
 				minDate: min,
 				maxDate: max,
 				startDate: min,
@@ -80,24 +115,113 @@ function start(mapdata, stationdata) {
 				autoApply: true,
 				autoUpdateInput: true,
 				linkedCalendars: false,
+				timeZone: 'utc'
+			};
+
+			// GEO MAP
+			let geo_datepicker = $("#geomap_datepicker").daterangepicker($.extend({
 				ranges: {
 					"Winter '63": [new Date("1962-12-21"), new Date("1963-03-21")],
 					"Juli 2018": [new Date("2018-07-01"), new Date("2018-07-31")]
-				},
+				}
+			}, dp_settings));
 
-			});
+			// WIND ROSE
+			let windrose_datepicker = $("#windrose_datepicker").daterangepicker($.extend({
+				ranges: {
+					"Winter '63": [new Date("1962-12-21"), new Date("1963-03-21")],
+					"Juli 2018": [new Date("2018-07-01"), new Date("2018-07-31")]
+				}
+			}, dp_settings));
+
+			// BAR CHART
+			let minYear = min.getFullYear(), maxYear = max.getFullYear(), yearRange = Array.from({length: maxYear - minYear + 1}, (x, i) => maxYear - i);
+
+			let date_selects = [document.getElementById("barchart_yearCompare"), document.getElementById("barchart_yearBegin"), document.getElementById("barchart_yearEnd")];
+
+			for (let list of date_selects) {
+				if ($(list).find('option').length === 0) {
+					for (let year of yearRange) {
+						list.add(new Option(year, year));
+					}
+				}
+			}
+
+
+			// RUN VIS
 
 			// Button click handler
 			$("#visualize").off("click").on("click", () => {
 
-				let startDate = $('#datepicker').data('daterangepicker').startDate.toDate(),
-					endDate = $('#datepicker').data('daterangepicker').endDate.toDate(),
-					seasonQuery = $("#season_selection input:checked").data("sql");
+				// 1. Find out which visualization is selected
+				let activeCard = $("#visSelection [aria-expanded='true']").parents(".card").attr('id');
 
-				console.log(startDate)
-				console.log(endDate)
 
-				runVis(startDate, endDate, seasonQuery);
+				// 2. Validate selection (only for geo dropdowns)
+				switch (activeCard) {
+					case "geo_card":
+
+						// TODO: If dropdown selected, check if any subfields selected
+
+						break;
+				}
+
+				// 3. Remove old visualization
+
+
+				// 4. Load new visualization
+				switch (activeCard) {
+
+					case "geo_card":
+
+						// Get active dates
+						let startDate = geo_datepicker.data('daterangepicker').startDate._i,
+							endDate = geo_datepicker.data('daterangepicker').endDate._i;
+
+						// Reset error classes
+						$("#geo_card .invalid.btn-danger").addClass('btn-outline-secondary').removeClass('btn-danger');
+
+						let q = "";
+
+						// Check if season button is selected
+						if ($("#geo_seasons").prop("checked") === true) {
+
+							// Check if any seasons are selected
+							let seasons_selected = $("#geo_season_dropdown input:checked");
+							if (seasons_selected.length <= 0) {
+								$("#geo_seasons").parent().addClass("invalid btn-danger").removeClass("btn-outline-secondary");
+							}
+
+							// Build season query
+							if (seasons_selected.length < 4) {
+								seasons_selected.each((i, el) => {
+									if (i > 0) q += " or ";
+									q += "(" + season_queries[el.id] + ")";
+								});
+							}
+
+						}
+
+						runVis(startDate, endDate, q);
+
+						console.log(startDate, endDate)
+
+						break;
+
+					case "windrose_card":
+
+						break;
+
+					case "barchart_card":
+
+						break;
+				}
+
+				//
+				// console.log(startDate)
+				// console.log(endDate)
+				//
+				// runVis(startDate, endDate, seasonQuery);
 
 			});
 

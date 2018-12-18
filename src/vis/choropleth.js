@@ -18,10 +18,9 @@ export default class Choropleth {
 		// this.minMaxColors = ['#91bfdb', '#ffffff', '#fc8d59']
 		this.minMaxColors = ['#91bfdb', '#ffffff', '#fc8d59']
 
+		// TODO: prevent extrapolate
 		this.colorScale = d3.scaleLinear().domain([-10, 0, 10, 20]).range(this.temperatureColors);
 		this.minMaxScale = d3.scaleLinear().range(this.minMaxColors);
-
-		console.log(this.colorScale(0))
 
 		this.station_area_map = new Map();
 		this.stationdata.map(x => this.station_area_map.set(x.station, x.province_code));

@@ -8,13 +8,17 @@
     "@babel/polyfill": "^7.0.0",
     "alasql": "^0.4.11",
     "bootstrap": "^4.1.3",
+    "bootstrap-multiselect": "^0.9.13-1",
     "bootstrap-scss": "^4.1.3",
     "d3": "^5.7.0",
     "daterangepicker": "^3.0.3",
     "flatpickr": "^4.5.2",
     "gh-pages": "^2.0.1",
     "jquery": "^3.3.1",
-    "momentjs": "^2.0.0"
+    "moment": "^2.23.0",
+    "momentjs": "^2.0.0",
+    "popper": "^1.0.1",
+    "popper.js": "^1.14.6"
   },
   "scripts": {
     "precopy": "shx mkdir -p ./dist/knmi/stations && shx mkdir -p ./dist/geoJSON",
