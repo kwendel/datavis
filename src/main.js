@@ -176,12 +176,13 @@ function start(mapdata, stationdata) {
 
 						// Get active dates
 						let startDate = geo_datepicker.data('daterangepicker').startDate._i,
-							endDate = geo_datepicker.data('daterangepicker').endDate._i;
+							endDate = geo_datepicker.data('daterangepicker').endDate._i,
+							valid = true;
 
 						// Reset error classes
 						$("#geo_card .invalid.btn-danger").addClass('btn-outline-secondary').removeClass('btn-danger');
 
-						let q = "";
+						let q = "(";
 
 						// Check if season button is selected
 						if ($("#geo_seasons").prop("checked") === true) {
@@ -190,6 +191,7 @@ function start(mapdata, stationdata) {
 							let seasons_selected = $("#geo_season_dropdown input:checked");
 							if (seasons_selected.length <= 0) {
 								$("#geo_seasons").parent().addClass("invalid btn-danger").removeClass("btn-outline-secondary");
+								valid = false;
 							}
 
 							// Build season query
@@ -202,9 +204,35 @@ function start(mapdata, stationdata) {
 
 						}
 
-						runVis(startDate, endDate, q);
+						// Check if months button is selected
+						else if ($("#geo_months").prop("checked") === true) {
 
-						console.log(startDate, endDate)
+							// Check if any seasons are selected
+							let months_selected = $("#geo_month_dropdown input:checked");
+							if (months_selected.length <= 0) {
+								$("#geo_months").parent().addClass("invalid btn-danger").removeClass("btn-outline-secondary");
+								valid = false;
+							}
+
+							// Build season query
+							if (months_selected.length < 12) {
+								let months = [];
+								months_selected.each((i, el) => {
+									months.push("MONTH(DATE) = " + el.getAttribute("data-month"))
+								});
+								console.log(months_selected);
+								q += months.join(" OR ");
+							}
+
+						}
+
+						q += ")";
+
+						console.log(startDate, endDate, q);
+
+						if (valid) {
+							runVis(startDate, endDate, q);
+						}
 
 						break;
 
