@@ -112,7 +112,16 @@ export default class RadialHistogram {
 	}
 
 	setData(stackedData, angleOffset, angleKey) {
-		this.group.append("g")
+		const arc = d3.arc()
+			.innerRadius((d) => this.y(d[0]))
+			.outerRadius((d) => this.y(d[1]))
+			.startAngle((d) => this.x(d.data[angleKey]))
+			.endAngle((d) => this.x(d.data[angleKey]) + this.x.bandwidth())
+			.padAngle(0.01)
+			.padRadius(this.innerRadius);
+
+		this.group
+			.append("g")
 			.selectAll("g")
 			.data(stackedData)
 			.enter()
@@ -120,25 +129,12 @@ export default class RadialHistogram {
 			.attr("fill", (d) => {
 				return this.z(d.key);
 			})
+			.on("mouseover", d => console.log(d))
 			.selectAll("path")
 			.data((d) => d)
 			.enter()
 			.append("path")
-			.attr("d", d3.arc()
-				.innerRadius((d) => {
-					return this.y(d[0]);
-				})
-				.outerRadius((d) => {
-					return this.y(d[1]);
-				})
-				.startAngle((d) => {
-					return this.x(d.data[angleKey]);
-				})
-				.endAngle((d) => {
-					return this.x(d.data[angleKey]) + this.x.bandwidth();
-				})
-				.padAngle(0.01)
-				.padRadius(this.innerRadius))
+			.attr("d", arc)
 			.attr("transform", `rotate(${angleOffset})`);
 	}
 
