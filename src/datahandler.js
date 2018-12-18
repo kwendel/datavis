@@ -27,8 +27,9 @@ export default class DataHandler {
 		});
 	}
 
-	async loadAll() {
-		let promises = this.stations.map(s => this.load(s.station));
+	async loadAll(ids = []) {
+		console.log(this.stations);
+		let promises = this.stations.filter(s => ids.length === 0 || ids.includes(s.station)).map(s => this.load(s.station));
 
 		// Return promise that is fulfilled when all files are loaded
 		return Promise.all(promises);

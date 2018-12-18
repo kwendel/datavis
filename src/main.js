@@ -107,8 +107,8 @@ async function start() {
 	let stations = await resize();
 	// // Load all the stations files
 	datahandler = new DataHandler(stations);
-	await Promise.all([datahandler.load('270'), datahandler.load('310')]);
-	// await datahandler.loadAll()
+	// await Promise.all([datahandler.load('270'), datahandler.load('310')]);
+	await datahandler.loadAll([270, 310, 260, 209, 210, 258, 267, 269 ]); //, '260']);
 
 	// All is now loaded and we are ready to query and create visualizations
 
@@ -126,10 +126,10 @@ async function start() {
 
 	datahandler.queryRange({
 		select: 'STN, DATE as date, CAST(SQ as Number) as duration, CAST(SP as Number) as percentage',
-		start: '2013-12-01',
+		start: '2010-12-01',
 		end: '2014-03-01',
 	}).then((d) => {
-		let sun = new Histogram('hist_container', '#hist');
+		let sun = new Histogram('hist_container', '#hist', stations);
 		sun.plotData(d)
 	});
 
