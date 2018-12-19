@@ -97,7 +97,7 @@ function start(mapdata, stationdata) {
 
 	let loadingInterval = LoadingScreen.start();
 
-	progressPromise(datahandler.loadAll([/*260, 350, 370*/]), LoadingScreen.updateProgress).then(() => {
+	progressPromise(datahandler.loadAll([260, 350, 370]), LoadingScreen.updateProgress).then(() => {
 
 		LoadingScreen.stop(loadingInterval);
 
@@ -125,7 +125,10 @@ function start(mapdata, stationdata) {
 				autoApply: true,
 				autoUpdateInput: true,
 				linkedCalendars: false,
-				timeZone: 'utc'
+				timeZone: 'utc',
+				locale: {
+					format: 'MMMM Do, YYYY'
+				}
 			};
 
 			// GEO MAP
