@@ -44897,6 +44897,10 @@ var chromatic = _interopRequireWildcard(require("d3-scale-chromatic"));
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = Object.defineProperty && Object.getOwnPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : {}; if (desc.get || desc.set) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } } newObj.default = obj; return newObj; } }
 
+function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; var ownKeys = Object.keys(source); if (typeof Object.getOwnPropertySymbols === 'function') { ownKeys = ownKeys.concat(Object.getOwnPropertySymbols(source).filter(function (sym) { return Object.getOwnPropertyDescriptor(source, sym).enumerable; })); } ownKeys.forEach(function (key) { _defineProperty(target, key, source[key]); }); } return target; }
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
@@ -44906,7 +44910,9 @@ function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _d
 var RadialHistogram =
 /*#__PURE__*/
 function () {
-  function RadialHistogram(containerId, svgId) {
+  function RadialHistogram(containerId, svgId, stationData) {
+    var _this = this;
+
     _classCallCheck(this, RadialHistogram);
 
     this.svg = d3.select(svgId);
@@ -44927,6 +44933,10 @@ function () {
     this.scaling = 0.1 * 3.6;
     this.initAxis();
     this.createMainGroup(viewWidth, viewHeight);
+    this.station_area_map = new Map();
+    this.stationdata = stationData.map(function (x) {
+      return _this.station_area_map.set(x.station, x.province_code);
+    });
   }
 
   _createClass(RadialHistogram, [{
@@ -44962,11 +44972,11 @@ function () {
   }, {
     key: "setLegend",
     value: function setLegend(dataRange) {
-      var _this = this;
+      var _this2 = this;
 
       var legend = this.group.append("g").selectAll("g") // we want high values above
       .data(dataRange.reverse()).enter().append("g").attr("transform", function (d, i) {
-        return "translate(" + (_this.outerRadius + 0) + "," + (-_this.outerRadius + 40 + (i - dataRange.length / 2) * 20) + ")";
+        return "translate(" + (_this2.outerRadius + 0) + "," + (-_this2.outerRadius + 40 + (i - dataRange.length / 2) * 20) + ")";
       });
       legend.append("rect").attr("width", 18).attr("height", 18).attr("fill", this.z);
       legend.append("text").attr("x", 24).attr("y", 9).attr("dy", "0.35em").attr('class', 'legend').text(function (d) {
@@ -44976,13 +44986,13 @@ function () {
   }, {
     key: "setLabels",
     value: function setLabels(data, angleOffset, angleKey) {
-      var _this2 = this;
+      var _this3 = this;
 
       var label = this.group.append("g").selectAll("g").data(data).enter().append("g").attr("text-anchor", "middle").attr("transform", function (d) {
-        return "rotate(" + ((_this2.x(d[angleKey]) + _this2.x.bandwidth() / 2) * 180 / Math.PI - (90 - angleOffset)) + ")translate(" + (_this2.outerRadius + 30) + ",0)";
+        return "rotate(" + ((_this3.x(d[angleKey]) + _this3.x.bandwidth() / 2) * 180 / Math.PI - (90 - angleOffset)) + ")translate(" + (_this3.outerRadius + 30) + ",0)";
       });
       label.append("text").attr("transform", function (d) {
-        return (_this2.x(d[angleKey]) + _this2.x.bandwidth() / 2 + Math.PI / 2) % (2 * Math.PI) < Math.PI ? "rotate(90)translate(0,16)" : "rotate(-90)translate(0,-9)";
+        return (_this3.x(d[angleKey]) + _this3.x.bandwidth() / 2 + Math.PI / 2) % (2 * Math.PI) < Math.PI ? "rotate(90)translate(0,16)" : "rotate(-90)translate(0,-9)";
       }).text(function (d) {
         return d[angleKey];
       }).style("font-size", 14);
@@ -44990,36 +45000,40 @@ function () {
   }, {
     key: "setData",
     value: function setData(stackedData, angleOffset, angleKey) {
-      var _this3 = this;
+      var _this4 = this;
 
       var arc = d3.arc().innerRadius(function (d) {
-        return _this3.y(d[0]);
+        return _this4.y(d[0]);
       }).outerRadius(function (d) {
-        return _this3.y(d[1]);
+        return _this4.y(d[1]);
       }).startAngle(function (d) {
-        return _this3.x(d.data[angleKey]);
+        return _this4.x(d.data[angleKey]);
       }).endAngle(function (d) {
-        return _this3.x(d.data[angleKey]) + _this3.x.bandwidth();
+        return _this4.x(d.data[angleKey]) + _this4.x.bandwidth();
       }).padAngle(0.01).padRadius(this.innerRadius);
-      this.group.append("g").selectAll("g").data(stackedData).enter().append("g").attr("fill", function (d) {
-        return _this3.z(d.key);
+      var paths = this.group.append("g").selectAll("g").data(stackedData).enter().append("g").attr("fill", function (d) {
+        return _this4.z(d.key);
       }).selectAll("path").data(function (d) {
         return d;
-      }).enter().append("path").attr("d", arc).attr("transform", "rotate(".concat(angleOffset, ")"));
+      }).enter().append("path").attr("d", arc).attr("transform", "rotate(".concat(angleOffset, ")")).style('opacity', 0);
+      var t = d3.transition().duration(500).delay(function (d, i) {
+        return 500 * i;
+      }).ease(d3.easeCubic);
+      paths.transition(t).style('opacity', 1);
     }
   }, {
     key: "setAxisLines",
     value: function setAxisLines() {
-      var _this4 = this;
+      var _this5 = this;
 
       this.group.selectAll(".axis").data(d3.range(this.angle.domain()[1])).enter().append("g").attr("class", "axis").attr("transform", function (d) {
-        return "rotate(" + _this4.angle(d) * 180 / Math.PI + ")";
+        return "rotate(" + _this5.angle(d) * 180 / Math.PI + ")";
       }).call(d3.axisLeft().tickValues([]).scale(this.radius));
       var yAxis = this.group.append("g").attr("text-anchor", "middle");
       var yTick = yAxis.selectAll("g").data(this.y.ticks(5).slice(1)).enter().append("g");
       yTick.append("circle").attr("fill", "none").attr("stroke", "gray").attr("stroke-dasharray", "4,4").attr("r", this.y);
       yTick.append("text").attr("y", function (d) {
-        return -_this4.y(d);
+        return -_this5.y(d);
       }).attr("dy", "-0.35em").attr("x", -10).text(function (d) {
         return "".concat(d, "%");
       }).style("font-size", 14);
@@ -45084,14 +45098,19 @@ function () {
     }
   }, {
     key: "computeFrequencies",
-    value: function computeFrequencies(data, totalDays) {
+    value: function computeFrequencies(data) {
       // Nest on angle, and per angle on range
       var nested = d3.nest().key(function (d) {
         return d.angle;
       }).key(function (d) {
         return d.range;
-      }).entries(data); // Compute frequencies
+      }).entries(data);
+      var pv = d3.nest().key(function (d) {
+        return d.pv;
+      }); // For every direction, we count the amount of windspeeds
+      // Note: still should have been done with d3.histogram for better performance
 
+      var totalCount = 0;
       var _iteratorNormalCompletion2 = true;
       var _didIteratorError2 = false;
       var _iteratorError2 = undefined;
@@ -45100,35 +45119,44 @@ function () {
         for (var _iterator2 = nested[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
           var direction = _step2.value;
           var windSpeeds = direction.values;
-          direction.total = 0;
-          var _iteratorNormalCompletion3 = true;
-          var _didIteratorError3 = false;
-          var _iteratorError3 = undefined;
+          direction.total_count = 0;
+          var _iteratorNormalCompletion4 = true;
+          var _didIteratorError4 = false;
+          var _iteratorError4 = undefined;
 
           try {
-            for (var _iterator3 = windSpeeds[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
-              var w = _step3.value;
-              // Compute percentage of total
-              w.percentage = w.values.length / totalDays * 100;
-              direction.total += w.percentage; // Save windspeedRange = % in direction object because this is easier for stacking
+            for (var _iterator4 = windSpeeds[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
+              var w = _step4.value;
+              // Provinces have multiple stations
+              // Therefore, we take the average of every province
+              var pvs = pv.entries(w.values);
+              var counts = pvs.map(function (d) {
+                return d.values.length;
+              });
+              var avg_count = d3.mean(counts); // console.log(`${w.key} - ${counts} - ${avg_count}`);
+              // Save the counts
 
-              direction[w.key] = w.percentage;
+              w.count = avg_count;
+              totalCount += avg_count;
+              direction.total_count += avg_count; //w.percentage;
             }
           } catch (err) {
-            _didIteratorError3 = true;
-            _iteratorError3 = err;
+            _didIteratorError4 = true;
+            _iteratorError4 = err;
           } finally {
             try {
-              if (!_iteratorNormalCompletion3 && _iterator3.return != null) {
-                _iterator3.return();
+              if (!_iteratorNormalCompletion4 && _iterator4.return != null) {
+                _iterator4.return();
               }
             } finally {
-              if (_didIteratorError3) {
-                throw _iteratorError3;
+              if (_didIteratorError4) {
+                throw _iteratorError4;
               }
             }
           }
-        }
+        } // Nested how contains the counts for every windspeed for every direction
+        // We now turn it into a percentage by dividing by the total measurements that were maded
+
       } catch (err) {
         _didIteratorError2 = true;
         _iteratorError2 = err;
@@ -45140,6 +45168,55 @@ function () {
         } finally {
           if (_didIteratorError2) {
             throw _iteratorError2;
+          }
+        }
+      }
+
+      var _iteratorNormalCompletion3 = true;
+      var _didIteratorError3 = false;
+      var _iteratorError3 = undefined;
+
+      try {
+        for (var _iterator3 = nested[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+          var _direction = _step3.value;
+          _direction.total = _direction.total_count / totalCount * 100;
+          var _windSpeeds = _direction.values;
+          var _iteratorNormalCompletion5 = true;
+          var _didIteratorError5 = false;
+          var _iteratorError5 = undefined;
+
+          try {
+            for (var _iterator5 = _windSpeeds[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
+              var _w = _step5.value;
+              _w.percentage = _w.count / totalCount * 100;
+              _direction[_w.key] = _w.percentage;
+            }
+          } catch (err) {
+            _didIteratorError5 = true;
+            _iteratorError5 = err;
+          } finally {
+            try {
+              if (!_iteratorNormalCompletion5 && _iterator5.return != null) {
+                _iterator5.return();
+              }
+            } finally {
+              if (_didIteratorError5) {
+                throw _iteratorError5;
+              }
+            }
+          }
+        }
+      } catch (err) {
+        _didIteratorError3 = true;
+        _iteratorError3 = err;
+      } finally {
+        try {
+          if (!_iteratorNormalCompletion3 && _iterator3.return != null) {
+            _iterator3.return();
+          }
+        } finally {
+          if (_didIteratorError3) {
+            throw _iteratorError3;
           }
         }
       }
@@ -45156,18 +45233,20 @@ function () {
   }, {
     key: "plotData",
     value: function plotData(data) {
-      var _this5 = this;
+      var _this6 = this;
 
       // convert to km/h
-      data.forEach(function (d) {
-        return d.speed = parseInt(d.speed) * _this5.scaling;
+      data = data.map(function (d) {
+        return _objectSpread({}, d, {
+          // convert speed
+          speed: parseInt(d.speed) * _this6.scaling,
+          // add province code
+          pv: _this6.station_area_map.get(parseInt(d.STN))
+        });
       });
       var maxSpeed = d3.max(data, function (d) {
         return d.speed;
       });
-      var totalDays = d3.nest().key(function (d) {
-        return d.date;
-      }).entries(data).length;
       this.createMainGroup(this.viewWidth, this.viewHeight); // Transform the data
       // - first, remove any undefined values
       // - transform direction and speed to discrete steps
@@ -45176,8 +45255,49 @@ function () {
       data = this.removeUndefinedValues(data);
       var roundedMaxSpeed = this.setTransformRanges(maxSpeed);
       data = this.transformData(data, roundedMaxSpeed);
-      data = this.computeFrequencies(data, totalDays); // console.log(data)
-      // Now draw the data
+      data = this.computeFrequencies(data); // // Test if the total is 100%
+      // let total_percentage = data.reduce((t, curr) => {
+      // 	return t + curr.total;
+      // }, 0);
+      // console.log(`Total percentage ${total_percentage}`);
+      // We may run into the problem that some direction doesn't have a direction
+      // So add the an empty direction if it was not existing in the data
+
+      var directions = data.map(function (d) {
+        return d.key;
+      });
+      var _iteratorNormalCompletion6 = true;
+      var _didIteratorError6 = false;
+      var _iteratorError6 = undefined;
+
+      try {
+        for (var _iterator6 = this.directionRange[Symbol.iterator](), _step6; !(_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done); _iteratorNormalCompletion6 = true) {
+          var d = _step6.value;
+
+          if (!directions.includes(d)) {
+            data.push({
+              key: d,
+              values: [],
+              total: 0,
+              total_count: 0
+            });
+          }
+        } // Now draw the data
+
+      } catch (err) {
+        _didIteratorError6 = true;
+        _iteratorError6 = err;
+      } finally {
+        try {
+          if (!_iteratorNormalCompletion6 && _iterator6.return != null) {
+            _iterator6.return();
+          }
+        } finally {
+          if (_didIteratorError6) {
+            throw _iteratorError6;
+          }
+        }
+      }
 
       var angleOffset = -360.0 / data.length / 2.0;
       this.setDomain(data);
@@ -45549,9 +45669,9 @@ function () {
       var delta = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : false;
       var s = "choroplethLegend",
           legendheight = 250,
-          legendwidth = 20;
-      var colors_reverse = colors.slice().reverse();
-      var legendDefs = d3.select("defs#legend"); // Clear existing legend of this type
+          legendwidth = 15;
+      var legendDefs = d3.select("defs#legend");
+      var colors_reverse = colors.slice(); // Clear existing legend of this type
 
       legendDefs.selectAll("#".concat(s)).remove(); // Add linearGradient
 
@@ -45564,28 +45684,31 @@ function () {
       });
       svg.selectAll(".legend-container").remove();
       var svgLegend = svg.append("g").attr("class", "legend-container");
-      var domain = colorScale.domain();
-      var min = domain[0],
-          max = domain[domain.length - 1]; // Fix legend if min == max
-
-      if (min == max) {
-        min -= 0.01;
-        max += 0.01;
-      }
-
-      var mean = (min + max) / 2;
-      var steps = (max - min) / 5 - 1;
-      var tickValues;
+      var tickValues, min, max, domain_array;
 
       if (delta) {
+        var domain = colorScale.domain();
+        min = domain[0];
+        max = domain[domain.length - 1]; // Fix legend if min == max
+
+        if (min == max) {
+          min -= 0.01;
+          max += 0.01;
+        }
+
+        var mean = (min + max) / 2;
         tickValues = [min, mean, max];
+        domain_array = [min, max];
       } else {
-        tickValues = d3.range(min, max, steps);
+        min = -40;
+        max = 40;
+        tickValues = d3.range(min, max, 10); // Steps of 10 degrees
+
         tickValues.push(max);
-        tickValues = tickValues.reverse();
+        domain_array = [max, min];
       }
 
-      var legendScale = d3.scaleLinear().domain([max, min]) // Add one extra tick in front and end
+      var legendScale = d3.scaleLinear().domain(domain_array) // Add one extra tick in front and end
       .range([0, legendheight]);
       var legendaxis = d3.axisRight().scale(legendScale).tickSize(legendwidth).tickPadding(6).tickValues(tickValues).tickFormat(function (t) {
         return Number(t).toFixed(1) + "°C";
@@ -45644,10 +45767,13 @@ function () {
     this.map = d3.select(svgid);
     this.mapdata = mapdata;
     this.stationdata = stationdata;
-    this.temperatureColors = ["#00467d", "#eee", "#FFBA39", "#C85153"];
-    this.minMaxColors = ['#91bfdb', '#ffffff', '#fc8d59']; // TODO: prevent extrapolate
+    this.temperatureColors = d3.schemeRdBu[9]; // this.temperatureColors[4] = "#ffffff";
+    // this.temperatureColors[6] = this.temperatureColors[7];
+    // this.temperatureColors[7] = this.temperatureColors[8];
 
-    this.colorScale = d3.scaleLinear().domain([-10, 0, 10, 20]).range(this.temperatureColors);
+    this.minMaxColors = ['#67a9cf', '#f7f7f7', '#ef8a62']; // Colorbrewer: RdBu3
+
+    this.colorScale = d3.scaleLinear().domain([40, 30, 20, 10, 0, -10, -20, -30, -40]).range(this.temperatureColors);
     this.minMaxScale = d3.scaleLinear().range(this.minMaxColors);
     this.station_area_map = new Map();
     this.stationdata.map(function (x) {
@@ -45673,7 +45799,9 @@ function () {
       this.path = d3.geoPath().projection(this.projection);
       this.map.selectAll("".concat(this.svgid, " *")).remove(); // features paths
 
-      this.map.selectAll('path').data(this.mapdata.features).enter().append('path').attr('d', this.path).attr('vector-effect', 'non-scaling-stroke') // keeps stroke-width the same if we transform
+      this.map.selectAll('path').data(this.mapdata.features).enter().append('path').attr('d', this.path).attr('pvid', function (d) {
+        return d.id;
+      }).attr('vector-effect', 'non-scaling-stroke') // keeps stroke-width the same if we transform
       .on('mouseover', function (d, i, nodes) {
         d3.select(nodes[i]).classed('hover', true);
 
@@ -45700,7 +45828,7 @@ function () {
         return _this3.active_stations.has(station.station);
       }); // Remove all stations
 
-      this.stations.selectAll('circle').remove(); // Add stations
+      this.map.selectAll('circle').remove(); // Add stations
 
       this.stations.selectAll('circle').data(stations).enter().append('circle').attr('cx', function (d) {
         return _this3.projection([d.lon, d.lat])[0];
@@ -45721,7 +45849,7 @@ function () {
 
   }, {
     key: "setBaseline",
-    value: function setBaseline(d) {
+    value: function setBaseline(d, i, nodes) {
       var _this4 = this;
 
       // Don't apply this visualization on provinces without data
@@ -45729,10 +45857,14 @@ function () {
 
       if (typeof this.activeBaseline != "undefined" && this.activeBaseline === d) {
         this.activeBaseline = null;
+        d3.select(nodes[i]).classed("selected", false);
         this.plot();
         return;
-      } // Set active province
+      } // Select this province on map
 
+
+      d3.selectAll("path").classed("selected", false);
+      d3.select(nodes[i]).classed("selected", true); // Set active province
 
       this.activeBaseline = d; // Calculate domain based on min/max distance to clicked value
 
@@ -45755,14 +45887,14 @@ function () {
         if (isNaN(val)) return "";
         if (d.id !== _d.id) val -= mean;
         var str = Number(val).toFixed(1) + "°C";
-        if (val > 0 && d.id !== _d.id) str = "+" + str; // TODO: highlight label in province
-
+        if (val > 0 && d.id !== _d.id) str = "+" + str;
         return str;
       }); // Recolor legend
 
       this.legend.legend(this.minMaxScale, this.minMaxColors, this.map, true); // Unset hover
 
       d3.selectAll("*.hover").classed("hover", false);
+      d3.selectAll(d).classed("selected", true);
     }
     /**
      * Calculates width and height of map.
@@ -45787,6 +45919,7 @@ function () {
 
       // Calculate averages for the selected data, per province
       var data = {};
+      this.maxdate = measurements.length > 0 ? measurements[measurements.length - 1].DATE : false;
       this.active_stations = new Set(); // TODO: might be improved with native d3 code
 
       measurements.forEach(function (row) {
@@ -45840,7 +45973,16 @@ function () {
         return _this6.color(d);
       }); // Update legend
 
-      this.legend.legend(this.colorScale, this.temperatureColors, this.map); // Draw stations
+      this.legend.legend(this.colorScale, this.temperatureColors, this.map);
+      var flevo = d3.selectAll("path[pvid='PV24']");
+      console.log(flevo);
+
+      if (new Date(this.maxdate).getFullYear() < 1970) {
+        flevo.classed("hidden", true);
+      } else {
+        flevo.classed("hidden", false);
+      } // Draw stations
+
 
       this.addStations(); // Draw labels
 
@@ -45849,8 +45991,8 @@ function () {
         return isNaN(val) ? "" : Number(val).toFixed(1) + "°C";
       }); // Add click handler for delta comparisons
 
-      this.addEventHandler("click", function (d) {
-        return _this6.setBaseline(d);
+      this.addEventHandler("click", function (d, i, nodes) {
+        return _this6.setBaseline(d, i, nodes);
       });
     }
   }, {
@@ -45859,7 +46001,7 @@ function () {
       var _this7 = this;
 
       // Remove existing labels
-      this.labels.selectAll(".label").remove(); // Draw labels
+      this.map.selectAll(".label").remove(); // Draw labels
 
       this.labels.selectAll(".label").data(this.mapdata.features).enter().append("text").attr("class", "label").attr("x", function (d) {
         return _this7.path.centroid(d)[0];
@@ -45918,6 +46060,7 @@ function () {
   _createClass(LoadingScreen, null, [{
     key: "start",
     value: function start() {
+      (0, _jquery.default)("#loading .progress-bar").width('0%');
       (0, _jquery.default)("#loading").show();
       (0, _jquery.default)("#funny_loading_quote").text(LoadingScreen.getQuote());
       return setInterval(function () {
@@ -58798,9 +58941,9 @@ function start(mapdata, stationdata) {
   // Draw map and wait for the stations
   var stations = stationdata;
   map = new _choropleth.default("map_container", "#map", mapdata, stationdata);
-  radial = new _radialHistogram.default('wind_container', '#wind_vis');
-  sun = new _barChart.default('sun_container', '#sun_vis', stationdata, 'Amount of sunshine ');
-  rain = new _barChart.default('rain_container', '#rain_vis', stationdata, 'Amount of rainfall '); // Show map as first visualization
+  radial = new _radialHistogram.default('wind_container', '#wind_vis', stationdata);
+  sun = new _barChart.default('sun_container', '#sun_vis', stationdata, 'Sunshine (hours)');
+  rain = new _barChart.default('rain_container', '#rain_vis', stationdata, 'Precipitation (hours)'); // Show map as first visualization
 
   map.drawMap(); // Load all the stations files
 
@@ -58834,22 +58977,25 @@ function start(mapdata, stationdata) {
         autoApply: true,
         autoUpdateInput: true,
         linkedCalendars: false,
-        timeZone: 'utc'
+        timeZone: 'utc',
+        ranges: {
+          "Wind speed record": [new Date("2005-11-25"), new Date("2005-11-25")],
+          "Most precipitation in one month": [new Date("2004-08-01"), new Date("2004-08-31")],
+          "Coldest winter - 1963": [new Date("1962-12-01"), new Date("1963-03-01")],
+          "Coldest Elfstedentocht": [new Date("1963-18-01"), new Date("1963-18-01")],
+          "Warmest day in De Bilt": [new Date("2006-19-07"), new Date("2006-19-07")],
+          "Warmest summer ever measured": [new Date("2018-01-06"), new Date("2018-01-09")],
+          "Coldest day ever measured": [new Date("1942-27-01"), new Date("1942-27-01")],
+          "Watersnoodramp 1953": [new Date("1953-25-01"), new Date("1953-03-02")]
+        },
+        locale: {
+          format: 'MMMM Do, YYYY'
+        }
       }; // GEO MAP
 
-      var geo_datepicker = (0, _jquery.default)("#geomap_datepicker").daterangepicker(_jquery.default.extend({
-        ranges: {
-          "Winter '63": [new Date("1962-12-21"), new Date("1963-03-21")],
-          "Juli 2018": [new Date("2018-07-01"), new Date("2018-07-31")]
-        }
-      }, dp_settings)); // WIND ROSE
+      var geo_datepicker = (0, _jquery.default)("#geomap_datepicker").daterangepicker(_jquery.default.extend({}, dp_settings)); // WIND ROSE
 
-      var windrose_datepicker = (0, _jquery.default)("#windrose_datepicker").daterangepicker(_jquery.default.extend({
-        ranges: {
-          "Winter '63": [new Date("1962-12-21"), new Date("1963-03-21")],
-          "Juli 2018": [new Date("2018-07-01"), new Date("2018-07-31")]
-        }
-      }, dp_settings)); // BAR CHART
+      var windrose_datepicker = (0, _jquery.default)("#windrose_datepicker").daterangepicker(_jquery.default.extend({}, dp_settings)); // BAR CHART
 
       var minYear = min.getFullYear(),
           maxYear = max.getFullYear(),
@@ -58953,7 +59099,6 @@ function start(mapdata, stationdata) {
               start: startDateWindRose,
               end: endDateWindRose
             }).then(function (d) {
-              console.log(d);
               radial.plotData(d);
             });
             updateVisScreens(activeCard);
@@ -59000,4 +59145,4 @@ var updateVisScreens = function updateVisScreens(activeCard) {
   (0, _jquery.default)(".vis-container[data-card=\"".concat(activeCard, "\"]")).addClass("visible");
 };
 },{"core-js/modules/es6.array.copy-within":"8vJR","core-js/modules/es6.array.fill":"3fHC","core-js/modules/es6.array.find":"+HBF","core-js/modules/es6.array.find-index":"3xRc","core-js/modules/es6.array.from":"hO+0","core-js/modules/es7.array.includes":"EHCj","core-js/modules/es6.array.iterator":"2xsA","core-js/modules/es6.array.of":"ARIR","core-js/modules/es6.array.sort":"xw8W","core-js/modules/es6.array.species":"Smp7","core-js/modules/es6.date.to-primitive":"jJtq","core-js/modules/es6.function.has-instance":"YlR3","core-js/modules/es6.function.name":"WtEG","core-js/modules/es6.map":"0v0j","core-js/modules/es6.math.acosh":"FaF2","core-js/modules/es6.math.asinh":"oL1m","core-js/modules/es6.math.atanh":"PhwT","core-js/modules/es6.math.cbrt":"fi1h","core-js/modules/es6.math.clz32":"fJAy","core-js/modules/es6.math.cosh":"kseY","core-js/modules/es6.math.expm1":"hyI8","core-js/modules/es6.math.fround":"N7ZU","core-js/modules/es6.math.hypot":"HGHV","core-js/modules/es6.math.imul":"Pasv","core-js/modules/es6.math.log1p":"RR3i","core-js/modules/es6.math.log10":"zlsv","core-js/modules/es6.math.log2":"b6PB","core-js/modules/es6.math.sign":"BHWJ","core-js/modules/es6.math.sinh":"7f0F","core-js/modules/es6.math.tanh":"GaA9","core-js/modules/es6.math.trunc":"qy71","core-js/modules/es6.number.constructor":"uYep","core-js/modules/es6.number.epsilon":"9Dec","core-js/modules/es6.number.is-finite":"oWwC","core-js/modules/es6.number.is-integer":"N7Jd","core-js/modules/es6.number.is-nan":"RsrB","core-js/modules/es6.number.is-safe-integer":"fbTZ","core-js/modules/es6.number.max-safe-integer":"JxHc","core-js/modules/es6.number.min-safe-integer":"X6hw","core-js/modules/es6.number.parse-float":"IKam","core-js/modules/es6.number.parse-int":"0QjI","core-js/modules/es6.object.assign":"fRec","core-js/modules/es7.object.define-getter":"mNK1","core-js/modules/es7.object.define-setter":"DPSG","core-js/modules/es7.object.entries":"beat","core-js/modules/es6.object.freeze":"3QMv","core-js/modules/es6.object.get-own-property-descriptor":"3eOb","core-js/modules/es7.object.get-own-property-descriptors":"MZQr","core-js/modules/es6.object.get-own-property-names":"N+x5","core-js/modules/es6.object.get-prototype-of":"x4A6","core-js/modules/es7.object.lookup-getter":"Y0di","core-js/modules/es7.object.lookup-setter":"/biA","core-js/modules/es6.object.prevent-extensions":"vJzf","core-js/modules/es6.object.is":"GEUt","core-js/modules/es6.object.is-frozen":"3UcE","core-js/modules/es6.object.is-sealed":"1VI7","core-js/modules/es6.object.is-extensible":"CvEg","core-js/modules/es6.object.keys":"oiqN","core-js/modules/es6.object.seal":"y8Nt","core-js/modules/es6.object.set-prototype-of":"CQxr","core-js/modules/es7.object.values":"cZE6","core-js/modules/es6.promise":"ar2B","core-js/modules/es7.promise.finally":"5Per","core-js/modules/es6.reflect.apply":"XlB+","core-js/modules/es6.reflect.construct":"JeCu","core-js/modules/es6.reflect.define-property":"VZPr","core-js/modules/es6.reflect.delete-property":"kfrU","core-js/modules/es6.reflect.get":"iEI9","core-js/modules/es6.reflect.get-own-property-descriptor":"eHzb","core-js/modules/es6.reflect.get-prototype-of":"wht9","core-js/modules/es6.reflect.has":"sj65","core-js/modules/es6.reflect.is-extensible":"Nj86","core-js/modules/es6.reflect.own-keys":"/wy/","core-js/modules/es6.reflect.prevent-extensions":"y3HT","core-js/modules/es6.reflect.set":"0ndf","core-js/modules/es6.reflect.set-prototype-of":"olbq","core-js/modules/es6.regexp.constructor":"hBwo","core-js/modules/es6.regexp.flags":"57SA","core-js/modules/es6.regexp.match":"yikX","core-js/modules/es6.regexp.replace":"eUHu","core-js/modules/es6.regexp.split":"V8KN","core-js/modules/es6.regexp.search":"iHvG","core-js/modules/es6.regexp.to-string":"yEH7","core-js/modules/es6.set":"ig+w","core-js/modules/es6.symbol":"s5uV","core-js/modules/es7.symbol.async-iterator":"4Ibo","core-js/modules/es6.string.anchor":"Qidu","core-js/modules/es6.string.big":"8zi4","core-js/modules/es6.string.blink":"t+Da","core-js/modules/es6.string.bold":"3VlC","core-js/modules/es6.string.code-point-at":"P7ku","core-js/modules/es6.string.ends-with":"MUpt","core-js/modules/es6.string.fixed":"BahM","core-js/modules/es6.string.fontcolor":"f6mn","core-js/modules/es6.string.fontsize":"Du0n","core-js/modules/es6.string.from-code-point":"i8rB","core-js/modules/es6.string.includes":"IvzQ","core-js/modules/es6.string.italics":"EmZX","core-js/modules/es6.string.iterator":"Wu89","core-js/modules/es6.string.link":"mlNr","core-js/modules/es7.string.pad-start":"fWC9","core-js/modules/es7.string.pad-end":"XG7E","core-js/modules/es6.string.raw":"7+Dt","core-js/modules/es6.string.repeat":"s8Pp","core-js/modules/es6.string.small":"QeD6","core-js/modules/es6.string.starts-with":"hSvU","core-js/modules/es6.string.strike":"+ny4","core-js/modules/es6.string.sub":"Pvqx","core-js/modules/es6.string.sup":"mRpz","core-js/modules/es6.typed.array-buffer":"tZr0","core-js/modules/es6.typed.int8-array":"W7MG","core-js/modules/es6.typed.uint8-array":"n9td","core-js/modules/es6.typed.uint8-clamped-array":"m71d","core-js/modules/es6.typed.int16-array":"YGkr","core-js/modules/es6.typed.uint16-array":"OaOh","core-js/modules/es6.typed.int32-array":"sUYQ","core-js/modules/es6.typed.uint32-array":"XuMj","core-js/modules/es6.typed.float32-array":"V93U","core-js/modules/es6.typed.float64-array":"KMMD","core-js/modules/es6.weak-map":"yBwO","core-js/modules/es6.weak-set":"YtBU","core-js/modules/es7.array.flat-map":"moLY","core-js/modules/web.timers":"47+F","core-js/modules/web.immediate":"hg3C","core-js/modules/web.dom.iterable":"hFdU","regenerator-runtime/runtime":"KA2S","d3":"BG5c","jquery":"HlZQ","./datahandler":"0Mrh","./vis/radialHistogram":"EkSz","./utils":"K0yk","./vis/barChart":"5vLM","./vis/choropleth":"a2cf","./vis/loading":"5+rm","daterangepicker":"dfnv","bootstrap/dist/js/bootstrap.bundle":"GY7m"}]},{},["HJD/"], null)
-//# sourceMappingURL=/datavis/main.3952f5e3.map
+//# sourceMappingURL=/datavis/main.45e53b3d.map

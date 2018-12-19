@@ -2,7 +2,7 @@
 <html>
 <head>
 	<title>IN4086 - Data Visualization</title>
-	<link rel="stylesheet" href="/datavis/style.10b03fd8.css">
+	<link rel="stylesheet" href="/datavis/style.394d1c80.css">
 	<link rel="stylesheet" href="/datavis/daterangepicker.e33ec95c.css">
 
 
@@ -33,20 +33,28 @@
 
 	<div class="flex-grow-1 d-flex flex-row row">
 
-		<div id="sidebar" class="col-sm-12 col-md-3">
+		<div id="sidebar" class="col-sm-12 col-md-3 bg-light">
 
 			<div id="selectionPane">
 
-				<h3>Historical Dutch Weather</h3>
-				<p>Choose a visualization type.</p>
+				<h3 class="display-4">
+					<svg xmlns="http://www.w3.org/2000/svg" width="40" height="30" viewbox="0 0 9 6" style="line-height:0;transform:translateY(-4px)">
+						<rect fill="#21468B" width="9" height="6"></rect>
+						<rect fill="#FFF" width="9" height="4"></rect>
+						<rect fill="#AE1C28" width="9" height="2"></rect>
+					</svg>
+					Historical Dutch Weather
+				</h3>
+				<p>Gain surprising insights in Dutch weather since 1901. Choose a visualization type and time period below to get started.</p>
 
+				<br>
 
 				<div class="accordion" id="visSelection">
 					<div class="card" id="geo_card">
-						<div class="card-header">
+						<div class="card-header bg-dark">
 							<h5 class="mb-0">
 								<button class="btn btn-link" type="button" data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
-									Geographical Map
+									Geographic Map
 								</button>
 							</h5>
 						</div>
@@ -70,7 +78,7 @@
 
 											<div class="btn-group w-100">
 												<label class="btn btn-outline-secondary w-100 active">
-													<input type="radio" name="options" autocomplete="off" data-sql="" checked=""> None
+													<input type="radio" name="options" autocomplete="off" data-sql="" checked=""> Show All
 												</label>
 											</div>
 
@@ -120,7 +128,7 @@
 						</div>
 					</div>
 					<div class="card" id="windrose_card">
-						<div class="card-header">
+						<div class="card-header bg-dark">
 							<h5 class="mb-0">
 								<button class="btn btn-link collapsed" type="button" data-toggle="collapse" data-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
 									Radial Histogram / Wind Rose
@@ -144,7 +152,7 @@
 						</div>
 					</div>
 					<div class="card" id="barchart_card">
-						<div class="card-header">
+						<div class="card-header bg-dark">
 							<h5 class="mb-0">
 								<button class="btn btn-link collapsed" type="button" data-toggle="collapse" data-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
 									Bar Chart
@@ -198,8 +206,8 @@
 
 			</div>
 
-			<div id="runContainer" class="text-right">
-				<button class="btn btn-primary" type="button" id="visualize">Apply changes &rsaquo;</button>
+			<div id="runContainer" class="text-right bg-dark">
+				<button class="btn btn-outline-warning" type="button" id="visualize">Visualize &rarr;</button>
 			</div>
 
 
@@ -228,7 +236,7 @@
 <script type="text/javascript" src="/datavis/jquery.min.8cd7a649.js"></script>
 <script type="text/javascript" src="/datavis/moment.bb0b6142.js"></script>
 <script type="text/javascript" src="/datavis/daterangepicker.55892ea1.js"></script>
-<script type="text/javascript" src="/datavis/main.3952f5e3.js"></script>
+<script type="text/javascript" src="/datavis/main.45e53b3d.js"></script>
 <script type="text/javascript" src="/datavis/bootstrap.bundle.min.0dfbfe31.js"></script>
 
 </body>
