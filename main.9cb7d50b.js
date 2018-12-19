@@ -45392,7 +45392,7 @@ function () {
 
       ticks.selectAll("text").attr('fill', 'black').attr("x", -30).attr("dy", 4); // Set y-axis label
 
-      this.group.append('text').attr('class', 'axis-label legend').attr('transform', "translate(-35,150) rotate(-90)").text(this.ylabel); // Set y-lines
+      this.group.append('text').attr('class', 'axis-label legend').attr('transform', "translate(-36,200) rotate(-90)").text(this.ylabel); // Set y-lines
     }
   }, {
     key: "getDateFromMonth",
@@ -45864,7 +45864,9 @@ function () {
       var _this4 = this;
 
       // Don't apply this visualization on provinces without data
-      if (typeof this.data[d.id] == "undefined" || isNaN(this.data[d.id])) return; // Disable this visualization when clicking the active province
+      if (typeof this.data[d.id] == "undefined" || isNaN(this.data[d.id])) return; // Unset selection
+
+      d3.selectAll("path").classed("selected", false); // Disable this visualization when clicking the active province
 
       if (typeof this.activeBaseline != "undefined" && this.activeBaseline === d) {
         this.activeBaseline = null;
@@ -45981,7 +45983,9 @@ function () {
     value: function plot() {
       var _this6 = this;
 
-      // Color provinces
+      // Unset selection
+      d3.selectAll("path").classed("selected", false); // Color provinces
+
       this.map.selectAll("path").style("fill", function (d) {
         return _this6.color(d);
       }); // Update legend
@@ -58955,7 +58959,7 @@ function start(mapdata, stationdata) {
   map = new _choropleth.default("map_container", "#map", mapdata, stationdata);
   radial = new _radialHistogram.default('wind_container', '#wind_vis', stationdata);
   sun = new _barChart.default('sun_container', '#sun_vis', stationdata, 'Sunshine (hours)');
-  rain = new _barChart.default('rain_container', '#rain_vis', stationdata, 'Precipitation (hours)'); // Show map as first visualization
+  rain = new _barChart.default('rain_container', '#rain_vis', stationdata, 'Daily precipitation (hours)'); // Show map as first visualization
 
   map.drawMap(); // Load all the stations files
 
@@ -58991,6 +58995,7 @@ function start(mapdata, stationdata) {
         linkedCalendars: false,
         timeZone: 'utc',
         ranges: {
+          "2000 - 2009": [new Date("2000-01-01"), new Date("2009-12-31")],
           "Winter '63": [new Date("1962-12-21"), new Date("1963-03-21")],
           "Wind speed record": [new Date("2005-11-25"), new Date("2005-11-25")],
           "Most precipitation in one month": [new Date("2004-08-01"), new Date("2004-08-31")],
@@ -59163,4 +59168,4 @@ var updateVisScreens = function updateVisScreens(activeCard) {
   (0, _jquery.default)(".vis-container[data-card=\"".concat(activeCard, "\"]")).addClass("visible");
 };
 },{"core-js/modules/es6.array.copy-within":"8vJR","core-js/modules/es6.array.fill":"3fHC","core-js/modules/es6.array.find":"+HBF","core-js/modules/es6.array.find-index":"3xRc","core-js/modules/es6.array.from":"hO+0","core-js/modules/es7.array.includes":"EHCj","core-js/modules/es6.array.iterator":"2xsA","core-js/modules/es6.array.of":"ARIR","core-js/modules/es6.array.sort":"xw8W","core-js/modules/es6.array.species":"Smp7","core-js/modules/es6.date.to-primitive":"jJtq","core-js/modules/es6.function.has-instance":"YlR3","core-js/modules/es6.function.name":"WtEG","core-js/modules/es6.map":"0v0j","core-js/modules/es6.math.acosh":"FaF2","core-js/modules/es6.math.asinh":"oL1m","core-js/modules/es6.math.atanh":"PhwT","core-js/modules/es6.math.cbrt":"fi1h","core-js/modules/es6.math.clz32":"fJAy","core-js/modules/es6.math.cosh":"kseY","core-js/modules/es6.math.expm1":"hyI8","core-js/modules/es6.math.fround":"N7ZU","core-js/modules/es6.math.hypot":"HGHV","core-js/modules/es6.math.imul":"Pasv","core-js/modules/es6.math.log1p":"RR3i","core-js/modules/es6.math.log10":"zlsv","core-js/modules/es6.math.log2":"b6PB","core-js/modules/es6.math.sign":"BHWJ","core-js/modules/es6.math.sinh":"7f0F","core-js/modules/es6.math.tanh":"GaA9","core-js/modules/es6.math.trunc":"qy71","core-js/modules/es6.number.constructor":"uYep","core-js/modules/es6.number.epsilon":"9Dec","core-js/modules/es6.number.is-finite":"oWwC","core-js/modules/es6.number.is-integer":"N7Jd","core-js/modules/es6.number.is-nan":"RsrB","core-js/modules/es6.number.is-safe-integer":"fbTZ","core-js/modules/es6.number.max-safe-integer":"JxHc","core-js/modules/es6.number.min-safe-integer":"X6hw","core-js/modules/es6.number.parse-float":"IKam","core-js/modules/es6.number.parse-int":"0QjI","core-js/modules/es6.object.assign":"fRec","core-js/modules/es7.object.define-getter":"mNK1","core-js/modules/es7.object.define-setter":"DPSG","core-js/modules/es7.object.entries":"beat","core-js/modules/es6.object.freeze":"3QMv","core-js/modules/es6.object.get-own-property-descriptor":"3eOb","core-js/modules/es7.object.get-own-property-descriptors":"MZQr","core-js/modules/es6.object.get-own-property-names":"N+x5","core-js/modules/es6.object.get-prototype-of":"x4A6","core-js/modules/es7.object.lookup-getter":"Y0di","core-js/modules/es7.object.lookup-setter":"/biA","core-js/modules/es6.object.prevent-extensions":"vJzf","core-js/modules/es6.object.is":"GEUt","core-js/modules/es6.object.is-frozen":"3UcE","core-js/modules/es6.object.is-sealed":"1VI7","core-js/modules/es6.object.is-extensible":"CvEg","core-js/modules/es6.object.keys":"oiqN","core-js/modules/es6.object.seal":"y8Nt","core-js/modules/es6.object.set-prototype-of":"CQxr","core-js/modules/es7.object.values":"cZE6","core-js/modules/es6.promise":"ar2B","core-js/modules/es7.promise.finally":"5Per","core-js/modules/es6.reflect.apply":"XlB+","core-js/modules/es6.reflect.construct":"JeCu","core-js/modules/es6.reflect.define-property":"VZPr","core-js/modules/es6.reflect.delete-property":"kfrU","core-js/modules/es6.reflect.get":"iEI9","core-js/modules/es6.reflect.get-own-property-descriptor":"eHzb","core-js/modules/es6.reflect.get-prototype-of":"wht9","core-js/modules/es6.reflect.has":"sj65","core-js/modules/es6.reflect.is-extensible":"Nj86","core-js/modules/es6.reflect.own-keys":"/wy/","core-js/modules/es6.reflect.prevent-extensions":"y3HT","core-js/modules/es6.reflect.set":"0ndf","core-js/modules/es6.reflect.set-prototype-of":"olbq","core-js/modules/es6.regexp.constructor":"hBwo","core-js/modules/es6.regexp.flags":"57SA","core-js/modules/es6.regexp.match":"yikX","core-js/modules/es6.regexp.replace":"eUHu","core-js/modules/es6.regexp.split":"V8KN","core-js/modules/es6.regexp.search":"iHvG","core-js/modules/es6.regexp.to-string":"yEH7","core-js/modules/es6.set":"ig+w","core-js/modules/es6.symbol":"s5uV","core-js/modules/es7.symbol.async-iterator":"4Ibo","core-js/modules/es6.string.anchor":"Qidu","core-js/modules/es6.string.big":"8zi4","core-js/modules/es6.string.blink":"t+Da","core-js/modules/es6.string.bold":"3VlC","core-js/modules/es6.string.code-point-at":"P7ku","core-js/modules/es6.string.ends-with":"MUpt","core-js/modules/es6.string.fixed":"BahM","core-js/modules/es6.string.fontcolor":"f6mn","core-js/modules/es6.string.fontsize":"Du0n","core-js/modules/es6.string.from-code-point":"i8rB","core-js/modules/es6.string.includes":"IvzQ","core-js/modules/es6.string.italics":"EmZX","core-js/modules/es6.string.iterator":"Wu89","core-js/modules/es6.string.link":"mlNr","core-js/modules/es7.string.pad-start":"fWC9","core-js/modules/es7.string.pad-end":"XG7E","core-js/modules/es6.string.raw":"7+Dt","core-js/modules/es6.string.repeat":"s8Pp","core-js/modules/es6.string.small":"QeD6","core-js/modules/es6.string.starts-with":"hSvU","core-js/modules/es6.string.strike":"+ny4","core-js/modules/es6.string.sub":"Pvqx","core-js/modules/es6.string.sup":"mRpz","core-js/modules/es6.typed.array-buffer":"tZr0","core-js/modules/es6.typed.int8-array":"W7MG","core-js/modules/es6.typed.uint8-array":"n9td","core-js/modules/es6.typed.uint8-clamped-array":"m71d","core-js/modules/es6.typed.int16-array":"YGkr","core-js/modules/es6.typed.uint16-array":"OaOh","core-js/modules/es6.typed.int32-array":"sUYQ","core-js/modules/es6.typed.uint32-array":"XuMj","core-js/modules/es6.typed.float32-array":"V93U","core-js/modules/es6.typed.float64-array":"KMMD","core-js/modules/es6.weak-map":"yBwO","core-js/modules/es6.weak-set":"YtBU","core-js/modules/es7.array.flat-map":"moLY","core-js/modules/web.timers":"47+F","core-js/modules/web.immediate":"hg3C","core-js/modules/web.dom.iterable":"hFdU","regenerator-runtime/runtime":"KA2S","d3":"BG5c","jquery":"HlZQ","./datahandler":"0Mrh","./vis/radialHistogram":"EkSz","./utils":"K0yk","./vis/barChart":"5vLM","./vis/choropleth":"a2cf","./vis/loading":"5+rm","daterangepicker":"dfnv","bootstrap/dist/js/bootstrap.bundle":"GY7m"}]},{},["HJD/"], null)
-//# sourceMappingURL=/datavis/main.3dac2ef2.map
+//# sourceMappingURL=/datavis/main.9cb7d50b.map
