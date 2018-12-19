@@ -16,6 +16,8 @@ export default class BarChart {
 		this.viewWidth = viewWidth - 100;
 		this.viewHeight = viewHeight - 100;
 		this.ylabel = yLabel;
+		// Time was in 0.1 hours
+		this.scaler = 0.1;
 
 		this.createMainGroup(viewWidth, viewHeight);
 
@@ -100,6 +102,7 @@ export default class BarChart {
 		const parse = (d) => {
 			return {
 				...d,
+				duration: d.duration * this.scaler,
 				date: parseDate(d.date),
 				month: d3.timeMonth(parseDate(d.date)).getMonth(),
 				pv: this.station_area_map.get(parseInt(d.STN)),
@@ -179,7 +182,7 @@ export default class BarChart {
 						.attr('transform', `translate(${2},0)`)
 						.attr('x', x(d))
 						.attr('y', y(d) - 10)
-						.text(d3.format('.0f')(d.median));
+						.text(d3.format('.1f')(d.median));
 				})
 				.on("mouseout", (d, i, nodes) => {
 					g
@@ -199,7 +202,7 @@ export default class BarChart {
 
 	drawLegend() {
 		const t = d3.transition()
-			.duration(500)
+			.duration(500);
 		// .ease(d3.easeLinear);
 
 		let legend = this.group
@@ -215,11 +218,13 @@ export default class BarChart {
 				// TODO: Sven is this doable with CSS?
 				if (d === 'rect-normal') {
 					d3.selectAll('#rect-compare')
+						.interrupt()
 						.transition(t)
 						.style('opacity', 0.2);
 				}
 				else if (d === 'rect-compare') {
 					d3.selectAll('#rect-normal')
+						.interrupt()
 						.transition(t)
 						.style('opacity', 0.2);
 				}
@@ -227,11 +232,13 @@ export default class BarChart {
 			.on("mouseout", (d) => {
 				if (d === 'rect-normal') {
 					d3.selectAll('#rect-compare')
+						.interrupt()
 						.transition(t)
 						.style('opacity', 1);
 				}
 				else if (d === 'rect-compare') {
 					d3.selectAll('#rect-normal')
+						.interrupt()
 						.transition(t)
 						.style('opacity', 1);
 				}
