@@ -12,11 +12,10 @@ export default class ContinousLegend {
 
 	legend(colorScale, colors, svg, delta = false) {
 
-		const s = "choroplethLegend", legendheight = 250, legendwidth = 20;
-
-		let colors_reverse = colors.slice().reverse();
+		const s = "choroplethLegend", legendheight = 250, legendwidth = 15;
 
 		let legendDefs = d3.select("defs#legend");
+		let colors_reverse = colors.slice();
 
 		// Clear existing legend of this type
 		legendDefs.selectAll(`#${s}`).remove();
@@ -39,31 +38,39 @@ export default class ContinousLegend {
 		svg.selectAll(".legend-container").remove();
 
 		let svgLegend = svg.append("g").attr("class", "legend-container");
-
-		let domain = colorScale.domain();
-		let min = domain[0], max = domain[domain.length - 1];
-
-		// Fix legend if min == max
-		if (min == max) {
-			min -= 0.01;
-			max += 0.01;
-		}
-
-		let mean = (min + max) / 2;
-		let steps = (max - min) / 5 - 1;
-
-		let tickValues;
+		let tickValues, min, max, domain_array;
 
 		if (delta) {
+
+			let domain = colorScale.domain();
+			min = domain[0];
+			max = domain[domain.length - 1];
+
+			// Fix legend if min == max
+			if (min == max) {
+				min -= 0.01;
+				max += 0.01;
+			}
+
+			let mean = (min + max) / 2;
 			tickValues = [min, mean, max];
+
+			domain_array = [min, max];
+
 		} else {
-			tickValues = d3.range(min, max, steps);
+
+			min = -40;
+			max = 40;
+
+			tickValues = d3.range(min, max, 10); // Steps of 10 degrees
 			tickValues.push(max);
-			tickValues = tickValues.reverse()
+
+
+			domain_array = [max, min];
 		}
 
 		let legendScale = d3.scaleLinear()
-			.domain([max, min]) // Add one extra tick in front and end
+			.domain(domain_array) // Add one extra tick in front and end
 			.range([0, legendheight]);
 
 		let legendaxis = d3.axisRight()

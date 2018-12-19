@@ -85,8 +85,8 @@ function start(mapdata, stationdata) {
 
 	map = new Choropleth("map_container", "#map", mapdata, stationdata);
 	radial = new RadialHistogram('wind_container', '#wind_vis', stationdata);
-	sun = new BarChart('sun_container', '#sun_vis', stationdata, 'Amount of sunshine ');
-	rain = new BarChart('rain_container', '#rain_vis', stationdata, 'Amount of rainfall ');
+	sun = new BarChart('sun_container', '#sun_vis', stationdata, 'Sunshine (hours)');
+	rain = new BarChart('rain_container', '#rain_vis', stationdata, 'Precipitation (hours)');
 
 
 	// Show map as first visualization
@@ -125,24 +125,27 @@ function start(mapdata, stationdata) {
 				autoApply: true,
 				autoUpdateInput: true,
 				linkedCalendars: false,
-				timeZone: 'utc'
+				timeZone: 'utc',
+				ranges: {
+					"Wind speed record": [new Date("2005-11-25"), new Date("2005-11-25")],
+					"Most precipitation in one month": [new Date("2004-08-01"), new Date("2004-08-31")],
+					"Coldest winter - 1963": [new Date("1962-12-01"), new Date("1963-03-01")],
+					"Coldest Elfstedentocht": [new Date("1963-18-01"), new Date("1963-18-01")],
+					"Warmest day in De Bilt": [new Date("2006-19-07"), new Date("2006-19-07")],
+					"Warmest summer ever measured": [new Date("2018-01-06"), new Date("2018-01-09")],
+					"Coldest day ever measured": [new Date("1942-27-01"), new Date("1942-27-01")],
+					"Watersnoodramp 1953": [new Date("1953-25-01"), new Date("1953-03-02")]
+				},
+				locale: {
+					format: 'MMMM Do, YYYY'
+				}
 			};
 
 			// GEO MAP
-			let geo_datepicker = $("#geomap_datepicker").daterangepicker($.extend({
-				ranges: {
-					"Winter '63": [new Date("1962-12-21"), new Date("1963-03-21")],
-					"Juli 2018": [new Date("2018-07-01"), new Date("2018-07-31")]
-				}
-			}, dp_settings));
+			let geo_datepicker = $("#geomap_datepicker").daterangepicker($.extend({}, dp_settings));
 
 			// WIND ROSE
-			let windrose_datepicker = $("#windrose_datepicker").daterangepicker($.extend({
-				ranges: {
-					"Winter '63": [new Date("1962-12-21"), new Date("1963-03-21")],
-					"Juli 2018": [new Date("2018-07-01"), new Date("2018-07-31")]
-				}
-			}, dp_settings));
+			let windrose_datepicker = $("#windrose_datepicker").daterangepicker($.extend({}, dp_settings));
 
 			// BAR CHART
 			let minYear = min.getFullYear(), maxYear = max.getFullYear(), yearRange = Array.from({length: maxYear - minYear + 1}, (x, i) => maxYear - i);
