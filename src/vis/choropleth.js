@@ -14,11 +14,13 @@ export default class Choropleth {
 		this.mapdata = mapdata;
 		this.stationdata = stationdata;
 
-		this.temperatureColors = ["#00467d", "#eee", "#FFBA39", "#C85153"];
-		this.minMaxColors = ['#91bfdb', '#ffffff', '#fc8d59']
+		this.temperatureColors = d3.schemeRdBu[9];
+		// this.temperatureColors[4] = "#ffffff";
+		// this.temperatureColors[6] = this.temperatureColors[7];
+		// this.temperatureColors[7] = this.temperatureColors[8];
+		this.minMaxColors = ['#67a9cf', '#f7f7f7', '#ef8a62']; // Colorbrewer: RdBu3
 
-		// TODO: prevent extrapolate
-		this.colorScale = d3.scaleLinear().domain([-10, 0, 10, 20]).range(this.temperatureColors);
+		this.colorScale = d3.scaleLinear().domain([40, 30, 20, 10, 0, -10, -20, -30, -40]).range(this.temperatureColors);
 		this.minMaxScale = d3.scaleLinear().range(this.minMaxColors);
 
 		this.station_area_map = new Map();
@@ -49,6 +51,7 @@ export default class Choropleth {
 			.enter()
 			.append('path')
 			.attr('d', this.path)
+			.attr('pvid', d => d.id)
 			.attr('vector-effect', 'non-scaling-stroke') // keeps stroke-width the same if we transform
 			.on('mouseover', (d, i, nodes) => {
 				d3.select(nodes[i]).classed('hover', true);
@@ -73,7 +76,7 @@ export default class Choropleth {
 		let stations = this.stationdata.filter(station => this.active_stations.has(station.station));
 
 		// Remove all stations
-		this.stations.selectAll('circle').remove();
+		this.map.selectAll('circle').remove();
 
 		// Add stations
 		this.stations.selectAll('circle')
@@ -94,7 +97,7 @@ export default class Choropleth {
 	 *
 	 * @param d Area/province to use as baseline.
 	 */
-	setBaseline(d) {
+	setBaseline(d, i, nodes) {
 
 		// Don't apply this visualization on provinces without data
 		if (typeof this.data[d.id] == "undefined" || isNaN(this.data[d.id])) return;
@@ -102,9 +105,14 @@ export default class Choropleth {
 		// Disable this visualization when clicking the active province
 		if (typeof this.activeBaseline != "undefined" && this.activeBaseline === d) {
 			this.activeBaseline = null;
+			d3.select(nodes[i]).classed("selected", false);
 			this.plot();
 			return;
 		}
+
+		// Select this province on map
+		d3.selectAll("path").classed("selected", false);
+		d3.select(nodes[i]).classed("selected", true);
 
 		// Set active province
 		this.activeBaseline = d;
@@ -125,9 +133,8 @@ export default class Choropleth {
 			let val = this.data[_d.id];
 			if (isNaN(val)) return "";
 			if (d.id !== _d.id) val -= mean;
-			let str = Number(val).toFixed(1) + "°C"
+			let str = Number(val).toFixed(1) + "°C";
 			if (val > 0 && d.id !== _d.id) str = "+" + str;
-			// TODO: highlight label in province
 			return str;
 		});
 
@@ -136,6 +143,7 @@ export default class Choropleth {
 
 		// Unset hover
 		d3.selectAll("*.hover").classed("hover", false);
+		d3.selectAll(d).classed("selected", true);
 	}
 
 	/**
@@ -155,6 +163,8 @@ export default class Choropleth {
 
 		// Calculate averages for the selected data, per province
 		let data = {};
+
+		this.maxdate = measurements.length > 0 ? measurements[measurements.length - 1].DATE : false;
 
 		this.active_stations = new Set();
 
@@ -204,6 +214,14 @@ export default class Choropleth {
 		// Update legend
 		this.legend.legend(this.colorScale, this.temperatureColors, this.map);
 
+		let flevo = d3.selectAll("path[pvid='PV24']")
+		console.log(flevo);
+		if (new Date(this.maxdate).getFullYear() < 1970) {
+			flevo.classed("hidden", true);
+		} else {
+			flevo.classed("hidden", false);
+		}
+
 		// Draw stations
 		this.addStations();
 
@@ -214,13 +232,13 @@ export default class Choropleth {
 		});
 
 		// Add click handler for delta comparisons
-		this.addEventHandler("click", d => this.setBaseline(d));
+		this.addEventHandler("click", (d, i, nodes) => this.setBaseline(d, i, nodes));
 	}
 
 	drawLabels(func) {
 
 		// Remove existing labels
-		this.labels.selectAll(".label").remove()
+		this.map.selectAll(".label").remove();
 
 		// Draw labels
 		this.labels.selectAll(".label")
