@@ -215,6 +215,13 @@ body {
 	margin-bottom: 0;
 }
 
+#wind_container {
+	.legend {
+		font: 12px sans-serif;
+		fill: black;
+	}
+}
+
 #sun_container {
 	.lower-capacity {
 		opacity: 0.2;

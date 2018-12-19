@@ -18,6 +18,9 @@ export default class RadialHistogram {
 		this.outerRadius = (Math.min(viewWidth, viewHeight) / 2) - 100;
 		this.nrOfBands = 9; //up to 9 bands are supported
 
+		// Wind speeds were in 0.1 m/s
+		this.scaling = 0.1 * 3.6;
+
 		this.initAxis();
 		this.createMainGroup(viewWidth, viewHeight)
 	}
@@ -81,21 +84,16 @@ export default class RadialHistogram {
 			.attr("x", 24)
 			.attr("y", 9)
 			.attr("dy", "0.35em")
-			.text((d) => {
-				// convert to kmh
-				let vals = d.split('-');
-				vals = vals.map((v) => Math.round((parseInt(v) * 0.1) * 3.6));
-
-				return `${vals[0]} - ${vals[1]} km/h`;
-			})
-			.style("font-size", 12);
+			.attr('class', 'legend')
+			.text(d => `${d} km/h`)
 	}
 
 	setLabels(data, angleOffset, angleKey) {
 		let label = this.group.append("g")
 			.selectAll("g")
 			.data(data)
-			.enter().append("g")
+			.enter()
+			.append("g")
 			.attr("text-anchor", "middle")
 			.attr("transform", (d) => {
 				return "rotate(" + ((this.x(d[angleKey]) + this.x.bandwidth() / 2) * 180 / Math.PI - (90 - angleOffset)) + ")translate(" + (this.outerRadius + 30) + ",0)";
@@ -129,7 +127,6 @@ export default class RadialHistogram {
 			.attr("fill", (d) => {
 				return this.z(d.key);
 			})
-			.on("mouseover", d => console.log(d))
 			.selectAll("path")
 			.data((d) => d)
 			.enter()
@@ -251,6 +248,9 @@ export default class RadialHistogram {
 
 
 	plotData(data) {
+		// convert to km/h
+		data.forEach(d => d.speed = parseInt(d.speed) * this.scaling);
+
 		let maxSpeed = d3.max(data, (d) => d.speed);
 		let totalDays = d3.nest()
 			.key((d) => d.date)
@@ -268,7 +268,7 @@ export default class RadialHistogram {
 		data = this.computeFrequencies(data, totalDays);
 
 		// console.log(data)
-		
+
 		// Now draw the data
 		let angleOffset = -360.0 / data.length / 2.0;
 		this.setDomain(data);
