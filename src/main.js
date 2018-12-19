@@ -1,137 +1,332 @@
 import "@babel/polyfill";
 import * as d3 from 'd3';
+import $ from "jquery";
+
 import DataHandler from './datahandler';
+import RadialHistogram from './vis/radialHistogram'
+import {calculateSVGWH} from "./utils";
+// import Histogram from "./vis/histogram";
+import BarChart from "./vis/barChart"
+import Choropleth from "./vis/choropleth";
+import LoadingScreen from "./vis/loading";
+
+import * as daterangepicker from "daterangepicker";
+import "bootstrap/dist/js/bootstrap.bundle";
 
 // Define global variables
-let container = document.getElementById('map_container');
-let map = d3.select('#map');
-let
-	viewWidth,
-	viewHeight,
-	projection,
-	path
-;
-// Global data variables
-let
-	datahandler
-;
+let datahandler, map, radial, sun, rain;
 
-const calculateWH = () => {
-	// Calculate inner element size
-	let style = getComputedStyle(container);
-	let elementWidth = container.clientWidth;
-	let elementHeight = container.clientHeight;
-	viewWidth = elementWidth - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom);
-	viewHeight = elementHeight - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
+let season_queries = {
+	"spring": "MONTH(DATE) BETWEEN 3 AND 5",
+	"summer": "MONTH(DATE) BETWEEN 6 AND 8",
+	"autumn": "MONTH(DATE) BETWEEN 9 AND 11",
+	"winter": "MONTH(DATE) > 11 OR MONTH(DATE) < 3",
+}
 
-	// Set svg attribute size
-	map = map
-		.attr('width', viewWidth)
-		.attr('height', viewHeight);
-};
+// Load data and start!
+Promise.all([
+	d3.json("./geoJSON/provincie_2017.json"),
+	d3.json("./knmi/stations.json"),
+]).then(function (files) {
+	return start(files[0], files[1]);
+}).catch(function (err) {
+	throw err;
+});
 
-const drawMap = (url) => {
-	return d3.json(url).then((mapdata) => {
-		calculateWH();
-		// Mercator projection is worldmap on a square
-		projection = d3.geoMercator().fitSize([viewWidth, viewHeight], mapdata);
+// Dirty dirty stuff here
+$(document).ready(() => {
 
-		// Fit projection to size
-		projection = projection.fitSize([viewWidth, viewHeight], mapdata);
-		path = d3.geoPath().projection(projection);
+	const fixDropdownRadio = (e) => {
+		$(e.currentTarget).dropdown('toggle');
+		$(e.currentTarget).button('toggle');
+	};
 
-		// create group or use existing one
-		d3.selectAll("#map *").remove();
+	const fixButtonFocus = (e) => {
+		$(e.target).parents('.btn-group').find('label.dropdown-toggle > input:not(:checked)').parent('.active').removeClass('active')
+		$('.dropdown-menu input:checked').parent().parent('li').toggleClass("active", true);
+	};
 
-		// features paths
-		map.selectAll('path')
-			.data(mapdata.features)
-			.enter()
-			.append('path')
-			.attr('d', path)
-			.attr('vector-effect', 'non-scaling-stroke') // keeps stroke-width the same if we transform
-			.on('mouseover', (d, i, nodes) => {
-				d3.select(nodes[i]).classed('hover', true)
-			})
-			.on('mouseout', (d, i, nodes) => {
-				d3.select(nodes[i]).classed('hover', false)
-			})
-			.on('click', (d) => updateInfoBox("example", d));
+	const dropdownRadioSelect = (e) => {
+		let $target = $(e.currentTarget),
+			$inp = $target.find('input');
+		setTimeout(() => {
+			let newprop = !$inp.prop("checked");
+			$inp.prop("checked", newprop);
+			$target.parent().toggleClass("active", newprop);
+		}, 0);
+		return false;
+	};
 
-		return;
-	}).catch((err) => {
-		console.error(`Error during reading geoJSON with url: ${url}`);
-		console.error(err)
-	});
-};
+	$("#geo_card .btn-group-toggle .btn.dropdown-toggle").off("click", fixDropdownRadio).on("click", fixDropdownRadio);
+	$("#geo_card .btn-group .btn").off("click", fixButtonFocus).on("click", fixButtonFocus);
+	$('#geo_card .dropdown-menu a').off('click', dropdownRadioSelect).on('click', dropdownRadioSelect);
+});
 
-const drawStations = (url) => {
-	return d3.json(url).then((stations) => {
-		// Draw stations as svg circle
-		let points = map.append('g');
-		points
-			.selectAll('circle')
-			.data(stations)
-			.enter()
-			.append('circle')
-			.attr('cx', (d) => projection([d.lon, d.lat])[0])
-			.attr('cy', (d) => projection([d.lon, d.lat])[1])
-			.attr('r', 3)
-			.style('fill', 'red');
 
-		// return stations for later reference
-		return stations
-	}).catch((err) => {
-		console.error(`Error during reading the stations with url: ${url}`);
-		console.error(err)
-	});
-};
+function progressPromise(promises, tickCallback) {
+	let len = promises.length, progress = 0;
 
-const updateInfoBox = (id, d) => {
-	let el = document.getElementById(id);
-
-	let html = `<h3>${d.properties.statnaam}</h3><p>Stations in this (land) area:</p><ul>`;
-
-	// Find stations in this province:
-	let stations = datahandler.getStationsInRegion(d.properties.statcode);
-	for (let station of stations) {
-		html += `<li>${station.name}</li>`;
+	function tick(promise) {
+		promise.then(() => {
+			progress++;
+			tickCallback(progress, len);
+		});
+		return promise;
 	}
 
-	html += "</ul>";
-	el.innerHTML = html;
-};
-
-async function resize() {
-	// TODO: create seperate resize handler so we dont reload files
-	// First draw the map and then the stations because we need the projection
-	await drawMap("./geoJSON/provincie_2017.json");
-	return await drawStations("./knmi/stations.json");
+	return Promise.all(promises.map(tick));
 }
 
-async function start() {
-	// Set resize handler
-	d3.select(window).on('resize', resize);
+
+function start(mapdata, stationdata) {
 
 	// Draw map and wait for the stations
-	let stations = await resize();
+	let stations = stationdata;
+
+	map = new Choropleth("map_container", "#map", mapdata, stationdata);
+	radial = new RadialHistogram('wind_container', '#wind_vis');
+	sun = new BarChart('sun_container', '#sun_vis', stationdata, 'Amount of sunshine ');
+	rain = new BarChart('rain_container', '#rain_vis', stationdata, 'Amount of rainfall ');
+
+
+	// Show map as first visualization
+	map.drawMap();
+
 	// Load all the stations files
 	datahandler = new DataHandler(stations);
-	await datahandler.loadAll();
 
-	// All is now loaded and we are ready to query and create visualizations
+	let loadingInterval = LoadingScreen.start();
 
-	// TODO: initialize visualizations
-	// example
-	console.log('Query range 2014 with ddvec < 80');
-	datahandler.queryRange({
-		select: 'STN, DATE, DDVEC',
-		start: '2014-01-01',
-		end: '2015-01-01',
-		where: 'DDVEC < 80',
-	}).then((d) => {
-		console.log(d)
+	progressPromise(datahandler.loadAll([]), LoadingScreen.updateProgress).then(() => {
+
+		LoadingScreen.stop(loadingInterval);
+
+		// Get min/max dates
+		Promise.all([datahandler.query({
+			select: "DATE",
+			orderby: "DATE ASC",
+			limit: 1
+		}), datahandler.query({
+			select: "DATE",
+			orderby: "DATE DESC",
+			limit: 1
+		})]).then(values => {
+
+			// Create JS date objects from extent
+			let min = new Date(values[0][0].DATE), max = new Date(values[1][0].DATE);
+
+			let dp_settings = {
+				minDate: min,
+				maxDate: max,
+				startDate: min,
+				endDate: max,
+				showDropdowns: true,
+				alwaysShowCalendars: true,
+				autoApply: true,
+				autoUpdateInput: true,
+				linkedCalendars: false,
+				timeZone: 'utc'
+			};
+
+			// GEO MAP
+			let geo_datepicker = $("#geomap_datepicker").daterangepicker($.extend({
+				ranges: {
+					"Winter '63": [new Date("1962-12-21"), new Date("1963-03-21")],
+					"Juli 2018": [new Date("2018-07-01"), new Date("2018-07-31")]
+				}
+			}, dp_settings));
+
+			// WIND ROSE
+			let windrose_datepicker = $("#windrose_datepicker").daterangepicker($.extend({
+				ranges: {
+					"Winter '63": [new Date("1962-12-21"), new Date("1963-03-21")],
+					"Juli 2018": [new Date("2018-07-01"), new Date("2018-07-31")]
+				}
+			}, dp_settings));
+
+			// BAR CHART
+			let minYear = min.getFullYear(), maxYear = max.getFullYear(), yearRange = Array.from({length: maxYear - minYear + 1}, (x, i) => maxYear - i);
+
+			let date_selects = [document.getElementById("barchart_yearCompare"), document.getElementById("barchart_yearBegin"), document.getElementById("barchart_yearEnd")];
+
+			for (let list of date_selects) {
+				if ($(list).find('option').length === 0) {
+					for (let year of yearRange) {
+						list.add(new Option(year, year));
+					}
+				}
+			}
+
+
+			// RUN VIS
+
+			// Button click handler
+			$("#visualize").off("click").on("click", () => {
+
+				// 1. Find out which visualization is selected
+				let activeCard = $("#visSelection [aria-expanded='true']").parents(".card").attr('id');
+
+				// 2. Load new visualization
+				switch (activeCard) {
+
+					case "geo_card":
+
+						// Get active dates
+						let startDate = geo_datepicker.data('daterangepicker').startDate.utc().toDate(),
+							endDate = geo_datepicker.data('daterangepicker').endDate.utc().toDate(),
+							valid = true;
+
+						// Reset error classes
+						$("#geo_card .invalid.btn-danger").addClass('btn-outline-secondary').removeClass('btn-danger');
+
+						let q = "";
+
+						// Check if season button is selected
+						if ($("#geo_seasons").prop("checked") === true) {
+
+							// Check if any seasons are selected
+							let seasons_selected = $("#geo_season_dropdown input:checked");
+							if (seasons_selected.length <= 0) {
+								$("#geo_seasons").parent().addClass("invalid btn-danger").removeClass("btn-outline-secondary");
+								valid = false;
+							}
+
+							// Build season query
+							if (seasons_selected.length < 4) {
+								q += "(";
+								seasons_selected.each((i, el) => {
+									if (i > 0) q += " or ";
+									q += "(" + season_queries[el.id] + ")";
+								});
+								q += ")";
+							}
+
+						}
+
+						// Check if months button is selected
+						else if ($("#geo_months").prop("checked") === true) {
+
+							// Check if any seasons are selected
+							let months_selected = $("#geo_month_dropdown input:checked");
+							if (months_selected.length <= 0) {
+								$("#geo_months").parent().addClass("invalid btn-danger").removeClass("btn-outline-secondary");
+								valid = false;
+							}
+
+							// Build season query
+							if (months_selected.length < 12) {
+								q += "(";
+								let months = [];
+								months_selected.each((i, el) => {
+									months.push("MONTH(DATE) = " + el.getAttribute("data-month"))
+								});
+								q += months.join(" OR ") + ")";
+							}
+
+						}
+
+						q += "";
+
+						// Create visualization
+						if (valid) {
+
+
+							// map.drawMap();
+
+							datahandler.queryRange({
+								select: 'STN, DATE, TG as measurement',
+								start: startDate,
+								end: endDate,
+								where: q
+							}).then((d) => {
+								map.setData(d);
+								map.plot();
+
+								updateVisScreens(activeCard);
+							});
+
+
+						}
+
+						break;
+
+					case "windrose_card":
+
+						// Get active dates
+						let startDateWindRose = windrose_datepicker.data('daterangepicker').startDate.utc().toDate(),
+							endDateWindRose = windrose_datepicker.data('daterangepicker').endDate.utc().toDate();
+
+
+						datahandler.queryRange({
+							select: 'STN, DATE as date, CAST(DDVEC as Number) as angle, CAST(FHVEC as Number) as speed, CAST(FG as Number) as avg_speed',
+							start: startDateWindRose,
+							end: endDateWindRose,
+						}).then(d => {
+
+							console.log(d);
+
+							radial.plotData(d)
+						});
+
+						updateVisScreens(activeCard);
+						break;
+
+					case "barchart_card":
+
+						let type = $("#" + activeCard).find("input:radio:checked").attr("id");
+						let qvar = type === "sun" ? "SQ" : "DR";
+						let qvar2 = type === "sun" ? "SP" : "RH";
+						activeCard += " " + type;
+
+						let beginYear = $("#barchart_yearBegin").val(),
+							endYear = $("#barchart_yearEnd").val(),
+							compareYear = $("#barchart_yearCompare").val();
+
+						console.log(beginYear, endYear, compareYear);
+
+
+						Promise.all([datahandler.queryRange({
+							select: `STN, DATE as date, CAST(${qvar} as Number) as duration, CAST(${qvar2} as Number) as percentage`,
+							start: beginYear + "-01-01",
+							end: endYear + "-12-31"
+						}), datahandler.queryRange({
+							select: `STN, DATE as date, CAST(${qvar} as Number) as duration, CAST(${qvar2} as Number) as percentage`,
+							start: compareYear + '-01-01',
+							end: compareYear + '12-31'
+						})]).then((query_data) => {
+
+							if (type === "sun") {
+								console.log("sun");
+								sun.plotData(query_data[0], query_data[1], '', 'Amount of sun hours ');
+							} else {
+								console.log("rain");
+								rain.plotData(query_data[0], query_data[1], '', 'Amount of rainfall ');
+							}
+
+							updateVisScreens(activeCard);
+						});
+
+
+						break;
+				}
+
+
+			});
+
+
+		});
+
+
 	});
+
+
 }
 
-start();
+const updateVisScreens = (activeCard) => {
+
+	// Show right visualization
+	$(".vis-container").removeClass("visible");
+	$(`.vis-container[data-card="${activeCard}"]`).addClass("visible");
+
+};
+
