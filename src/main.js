@@ -4,6 +4,9 @@ import $ from "jquery";
 
 import DataHandler from './datahandler';
 import RadialHistogram from './vis/radialHistogram'
+import {calculateSVGWH} from "./utils";
+// import Histogram from "./vis/histogram";
+import BarChart from "./vis/barChart"
 import Choropleth from "./vis/choropleth";
 import LoadingScreen from "./vis/loading";
 
@@ -11,7 +14,7 @@ import * as daterangepicker from "daterangepicker";
 import "bootstrap/dist/js/bootstrap.bundle";
 
 // Define global variables
-let datahandler, map;
+let datahandler, vis;
 
 let season_queries = {
 	"spring": "MONTH(DATE) BETWEEN 3 AND 5",
@@ -79,15 +82,15 @@ function start(mapdata, stationdata) {
 
 	// Draw map and wait for the stations
 	let stations = stationdata;
-	map = new Choropleth("map_container", "#map", mapdata, stationdata);
-	map.drawMap();
+	vis = new Choropleth("vis_container", "#vis", mapdata, stationdata);
+	vis.drawMap();
 
 	// Load all the stations files
 	datahandler = new DataHandler(stations);
 
 	let loadingInterval = LoadingScreen.start();
 
-	progressPromise(datahandler.loadAll([350]), LoadingScreen.updateProgress).then(() => {
+	progressPromise(datahandler.loadAll([260]), LoadingScreen.updateProgress).then(() => {
 
 		LoadingScreen.stop(loadingInterval);
 
@@ -175,14 +178,14 @@ function start(mapdata, stationdata) {
 					case "geo_card":
 
 						// Get active dates
-						let startDate = geo_datepicker.data('daterangepicker').startDate._i,
-							endDate = geo_datepicker.data('daterangepicker').endDate._i,
+						let startDate = geo_datepicker.data('daterangepicker').startDate.utc().toDate(),
+							endDate = geo_datepicker.data('daterangepicker').endDate.utc().toDate(),
 							valid = true;
 
 						// Reset error classes
 						$("#geo_card .invalid.btn-danger").addClass('btn-outline-secondary').removeClass('btn-danger');
 
-						let q = "(";
+						let q = "";
 
 						// Check if season button is selected
 						if ($("#geo_seasons").prop("checked") === true) {
@@ -196,10 +199,12 @@ function start(mapdata, stationdata) {
 
 							// Build season query
 							if (seasons_selected.length < 4) {
+								q += "(";
 								seasons_selected.each((i, el) => {
 									if (i > 0) q += " or ";
 									q += "(" + season_queries[el.id] + ")";
 								});
+								q += ")";
 							}
 
 						}
@@ -216,20 +221,37 @@ function start(mapdata, stationdata) {
 
 							// Build season query
 							if (months_selected.length < 12) {
+								q += "(";
 								let months = [];
 								months_selected.each((i, el) => {
 									months.push("MONTH(DATE) = " + el.getAttribute("data-month"))
 								});
-								console.log(months_selected);
-								q += months.join(" OR ");
+								q += months.join(" OR ") + ")";
 							}
 
 						}
 
-						q += ")";
+						q += "";
 
 						// Create visualization
-						if (valid) doChoropleth(startDate, endDate, q);
+						if (valid) {
+
+
+							vis = new Choropleth("vis_container", "#vis", mapdata, stationdata);
+							vis.drawMap();
+
+							datahandler.queryRange({
+								select: 'STN, DATE, TG as measurement',
+								start: startDate,
+								end: endDate,
+								where: q
+							}).then((d) => {
+								vis.setData(d);
+								vis.plot();
+							});
+
+
+						}
 
 						break;
 
@@ -238,6 +260,25 @@ function start(mapdata, stationdata) {
 						break;
 
 					case "barchart_card":
+
+						let normal = datahandler.queryRange({
+							select: 'STN, DATE as date, CAST(DR as Number) as duration, CAST(RH as Number) as percentage',
+							start: '2000-01-01',
+							end: '2017-01-01'
+						});
+
+						let compareWith = datahandler.queryRange({
+							select: 'STN, DATE as date, CAST(DR as Number) as duration, CAST(RH as Number) as percentage',
+							start: '2003-01-01',
+							end: '2004-01-01'
+						});
+
+						console.log(normal, compareWith);
+
+						d3.selectAll('#vis *').remove();
+
+						vis = new BarChart('vis_container', '#vis', stations, 'Amount of rainfall');
+						vis.plotData(normal, compareWith, 'MONTH(DATE) IN (12, 1, 2)', 'Amount of rainfall ');
 
 						break;
 				}
@@ -252,18 +293,4 @@ function start(mapdata, stationdata) {
 
 
 }
-
-const doChoropleth = (start, end, q) => {
-
-	datahandler.queryRange({
-		select: 'STN, DATE, TG as measurement',
-		start: start,
-		end: end,
-		where: q
-	}).then((d) => {
-		map.setData(d);
-		map.plot();
-	});
-
-};
 

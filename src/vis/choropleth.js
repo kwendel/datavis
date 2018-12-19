@@ -42,7 +42,7 @@ export default class Choropleth {
 		this.projection = d3.geoMercator().fitSize([this.viewWidth, this.viewHeight], this.mapdata);
 		this.path = d3.geoPath().projection(this.projection);
 
-		this.map.selectAll("#map *").remove();
+		this.map.selectAll(`${this.svgid} *`).remove();
 
 		// features paths
 		this.map.selectAll('path')

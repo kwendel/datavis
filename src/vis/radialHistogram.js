@@ -1,19 +1,25 @@
 import * as d3 from 'd3';
+import {calculateSVGWH} from "../utils";
+import * as chromatic from 'd3-scale-chromatic';
 
 export default class RadialHistogram {
-	constructor(svgid) {
-		this.svg = d3.select(svgid);
-		this.viewHeight = this.svg.attr('height');
-		this.viewWidth = this.svg.attr('width');
+	constructor(containerId, svgId) {
+		this.svg = d3.select(svgId);
+
+		let {viewWidth, viewHeight} = calculateSVGWH(containerId);
+		this.viewWidth = viewWidth;
+		this.viewHeight = viewHeight;
+		this.svg
+			.attr('width', viewWidth)
+			.attr('height', viewHeight);
 
 		this.innerRadius = 20;
-		this.outerRadius = Math.min(this.viewWidth, this.viewHeight) / 2;
-
-		this.group = this.svg
-			.append('g')
-			.attr('transform', `translate(${this.viewWidth / 2},${this.viewHeight / 2})`);
+		// Substract 100px from outerRadius so that the legend also fits in the svg
+		this.outerRadius = (Math.min(viewWidth, viewHeight) / 2) - 100;
+		this.nrOfBands = 9; //up to 9 bands are supported
 
 		this.initAxis();
+		this.createMainGroup(viewWidth, viewHeight)
 	}
 
 	initAxis() {
@@ -31,8 +37,19 @@ export default class RadialHistogram {
 			.range([this.innerRadius, this.outerRadius]);
 
 		this.z = d3.scaleOrdinal()
-			.range(["#4242f4", "#42c5f4", "#42f4ce", "#42f456", "#adf442", "#f4e242", "#f4a142", "#f44242"]);
+			.range(chromatic.schemePurples[this.nrOfBands]);
+		// .range(["#4242f4", "#42c5f4", "#42f4ce", "#42f456", "#adf442", "#f4e242", "#f4a142", "#f44242"]);
+	}
 
+	createMainGroup(width, height) {
+		// create group or remove existing
+		d3.selectAll("#mainGroup").remove();
+
+		this.group = this.svg
+			.append('g')
+			.attr('id', 'mainGroup')
+			// transform to middle of svg
+			.attr('transform', `translate(${width / 2},${height / 2})`);
 	}
 
 	setDomain(data) {
@@ -42,12 +59,13 @@ export default class RadialHistogram {
 
 		// Extend the domain slightly to match the range of [0, 2π].
 		this.angle.domain([0, this.directionRange.length]);
-		this.radius.domain([0, 0]);
+		this.radius.domain([0, 0]).range([-this.innerRadius, -(this.outerRadius + 10)]);
 	}
 
 	setLegend(dataRange) {
 		let legend = this.group.append("g")
 			.selectAll("g")
+			// we want high values above
 			.data(dataRange.reverse())
 			.enter().append("g")
 			.attr("transform", (d, i) => {
@@ -64,7 +82,11 @@ export default class RadialHistogram {
 			.attr("y", 9)
 			.attr("dy", "0.35em")
 			.text((d) => {
-				return d;
+				// convert to kmh
+				let vals = d.split('-');
+				vals = vals.map((v) => Math.round((parseInt(v) * 0.1) * 3.6));
+
+				return `${vals[0]} - ${vals[1]} km/h`;
 			})
 			.style("font-size", 12);
 	}
@@ -90,7 +112,16 @@ export default class RadialHistogram {
 	}
 
 	setData(stackedData, angleOffset, angleKey) {
-		this.group.append("g")
+		const arc = d3.arc()
+			.innerRadius((d) => this.y(d[0]))
+			.outerRadius((d) => this.y(d[1]))
+			.startAngle((d) => this.x(d.data[angleKey]))
+			.endAngle((d) => this.x(d.data[angleKey]) + this.x.bandwidth())
+			.padAngle(0.01)
+			.padRadius(this.innerRadius);
+
+		this.group
+			.append("g")
 			.selectAll("g")
 			.data(stackedData)
 			.enter()
@@ -98,28 +129,13 @@ export default class RadialHistogram {
 			.attr("fill", (d) => {
 				return this.z(d.key);
 			})
+			.on("mouseover", d => console.log(d))
 			.selectAll("path")
 			.data((d) => d)
 			.enter()
 			.append("path")
-			.attr("d", d3.arc()
-				.innerRadius((d) => {
-					return this.y(d[0]);
-				})
-				.outerRadius((d) => {
-					return this.y(d[1]);
-				})
-				.startAngle((d) => {
-					return this.x(d.data[angleKey]);
-				})
-				.endAngle((d) => {
-					return this.x(d.data[angleKey]) + this.x.bandwidth();
-				})
-				.padAngle(0.01)
-				.padRadius(this.innerRadius))
-			.attr("transform", function () {
-				return "rotate(" + angleOffset + ")"
-			});
+			.attr("d", arc)
+			.attr("transform", `rotate(${angleOffset})`);
 	}
 
 	setAxisLines() {
@@ -131,8 +147,9 @@ export default class RadialHistogram {
 			.attr("transform", (d) => {
 				return "rotate(" + this.angle(d) * 180 / Math.PI + ")";
 			})
-			.call(d3.axisLeft()
-				.scale(this.radius.copy().range([-this.innerRadius, -(this.outerRadius + 10)])));
+			.call(d3.axisLeft().tickValues([])
+				.scale(this.radius)
+			);
 
 		let yAxis = this.group.append("g")
 			.attr("text-anchor", "middle");
@@ -149,14 +166,10 @@ export default class RadialHistogram {
 			.attr("r", this.y);
 
 		yTick.append("text")
-			.attr("y", (d) => {
-				return -this.y(d);
-			})
+			.attr("y", (d) => -this.y(d))
 			.attr("dy", "-0.35em")
-			.attr("x", () => {
-				return -10;
-			})
-			.text(this.y.tickFormat(5, "s"))
+			.attr("x", -10)
+			.text((d) => `${d}%`)
 			.style("font-size", 14);
 	}
 
@@ -166,26 +179,33 @@ export default class RadialHistogram {
 
 		// SpeedRange
 		// We divide the speed range in nrOfBands parts
-		let nrOfBands = 8;
-		let stepSize = maxSpeed / nrOfBands;
+		// D3.ticks is not used because it returns unpredictable amount of steps
+		let stepSize = (maxSpeed)  / this.nrOfBands;
+		// round to nearest integer that is dividable by 5
+		stepSize = Math.ceil(stepSize / 5) * 5;
+
 		this.speedRange = [];
-		for (let i = 0; i < nrOfBands; i++) {
+		for (let i = 0; i < this.nrOfBands - 1; i++) {
 			this.speedRange.push(`${i * stepSize} - ${(i + 1) * stepSize}`);
 		}
 
+		let lastSpeed = (this.nrOfBands - 1) * stepSize;
+
 		// Stacker stacks the data based on the speed range blocks
-		// When we stack we want high values on top, therefore we reverse the order
 		this.stacker = d3.stack()
-			.keys(this.speedRange.reverse());
+			.keys(this.speedRange);
+
+		return lastSpeed;
 	}
 
 	transformData(data, maxSpeed) {
 		// Changes 0-360 degree vector to named direction
 		let direction = d3.scaleQuantize()
 			.domain([0, 360])
-			.range(["N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE", "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW"]);
+			.range(this.directionRange);
 
 		// Change speed to discrete blocks
+		// We need the last speed from the speed range to make a correct mapping
 		let speed = d3.scaleQuantize()
 			.domain([0, maxSpeed])
 			.range(this.speedRange);
@@ -232,18 +252,22 @@ export default class RadialHistogram {
 
 	plotData(data) {
 		let maxSpeed = d3.max(data, (d) => d.speed);
-		// TODO: find way to compute the amount of days from the data
-		let totalDays = data.length;
+		let totalDays = d3.nest()
+			.key((d) => d.date)
+			.entries(data).length;
 
+		this.createMainGroup(this.viewWidth, this.viewHeight);
 
 		// Transform the data
 		// - first, remove any undefined values
 		// - transform direction and speed to discrete steps
 		// - then compute the frequencies of the speed steps per direction
 		data = this.removeUndefinedValues(data);
-		this.setTransformRanges(maxSpeed);
-		data = this.transformData(data, maxSpeed);
+		let roundedMaxSpeed = this.setTransformRanges(maxSpeed);
+		data = this.transformData(data, roundedMaxSpeed);
 		data = this.computeFrequencies(data, totalDays);
+
+		// console.log(data)
 
 		// Now draw the data
 		let angleOffset = -360.0 / data.length / 2.0;
@@ -256,5 +280,4 @@ export default class RadialHistogram {
 		this.setAxisLines();
 
 	}
-
 }
