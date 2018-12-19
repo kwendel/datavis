@@ -14,11 +14,13 @@ export default class Choropleth {
 		this.mapdata = mapdata;
 		this.stationdata = stationdata;
 
-		this.temperatureColors = ["#00467d", "#eee", "#FFBA39", "#C85153"];
-		this.minMaxColors = ['#91bfdb', '#ffffff', '#fc8d59']
+		this.temperatureColors = d3.schemeRdBu[9];
+		// this.temperatureColors[4] = "#ffffff";
+		// this.temperatureColors[6] = this.temperatureColors[7];
+		// this.temperatureColors[7] = this.temperatureColors[8];
+		this.minMaxColors = ['#67a9cf', '#f7f7f7', '#ef8a62']; // Colorbrewer: RdBu3
 
-		// TODO: prevent extrapolate
-		this.colorScale = d3.scaleLinear().domain([-10, 0, 10, 20]).range(this.temperatureColors);
+		this.colorScale = d3.scaleLinear().domain([40, 30, 20, 10, 0, -10, -20, -30, -40]).range(this.temperatureColors);
 		this.minMaxScale = d3.scaleLinear().range(this.minMaxColors);
 
 		this.station_area_map = new Map();
@@ -73,7 +75,7 @@ export default class Choropleth {
 		let stations = this.stationdata.filter(station => this.active_stations.has(station.station));
 
 		// Remove all stations
-		this.stations.selectAll('circle').remove();
+		this.map.selectAll('circle').remove();
 
 		// Add stations
 		this.stations.selectAll('circle')
@@ -220,7 +222,7 @@ export default class Choropleth {
 	drawLabels(func) {
 
 		// Remove existing labels
-		this.labels.selectAll(".label").remove()
+		this.map.selectAll(".label").remove();
 
 		// Draw labels
 		this.labels.selectAll(".label")

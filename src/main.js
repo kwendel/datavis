@@ -85,8 +85,8 @@ function start(mapdata, stationdata) {
 
 	map = new Choropleth("map_container", "#map", mapdata, stationdata);
 	radial = new RadialHistogram('wind_container', '#wind_vis');
-	sun = new BarChart('sun_container', '#sun_vis', stationdata, 'Amount of sunshine ');
-	rain = new BarChart('rain_container', '#rain_vis', stationdata, 'Amount of rainfall ');
+	sun = new BarChart('sun_container', '#sun_vis', stationdata, 'Sunshine (hours)');
+	rain = new BarChart('rain_container', '#rain_vis', stationdata, 'Precipitation (hours)');
 
 
 	// Show map as first visualization
@@ -97,7 +97,7 @@ function start(mapdata, stationdata) {
 
 	let loadingInterval = LoadingScreen.start();
 
-	progressPromise(datahandler.loadAll([]), LoadingScreen.updateProgress).then(() => {
+	progressPromise(datahandler.loadAll([/*260, 350, 370*/]), LoadingScreen.updateProgress).then(() => {
 
 		LoadingScreen.stop(loadingInterval);
 

@@ -3,6 +3,7 @@ import $ from 'jquery';
 export default class LoadingScreen {
 
 	static start() {
+		$("#loading .progress-bar").width('0%');
 		$("#loading").show();
 		$("#funny_loading_quote").text(LoadingScreen.getQuote());
 		return setInterval(() => LoadingScreen.updateQuote(), 1000);
@@ -31,7 +32,6 @@ export default class LoadingScreen {
 		$("#loading").fadeOut();
 		clearInterval(intv);
 	}
-
 
 }
 
