@@ -55,7 +55,7 @@ export default class ContinousLegend {
 			let mean = (min + max) / 2;
 			tickValues = [min, mean, max];
 
-			domain_array = [min, max];
+			domain_array = [max, min];
 
 		} else {
 

@@ -15,9 +15,6 @@ export default class Choropleth {
 		this.stationdata = stationdata;
 
 		this.temperatureColors = d3.schemeRdBu[9];
-		// this.temperatureColors[4] = "#ffffff";
-		// this.temperatureColors[6] = this.temperatureColors[7];
-		// this.temperatureColors[7] = this.temperatureColors[8];
 		this.minMaxColors = ['#67a9cf', '#f7f7f7', '#ef8a62']; // Colorbrewer: RdBu3
 
 		this.colorScale = d3.scaleLinear().domain([40, 30, 20, 10, 0, -10, -20, -30, -40]).range(this.temperatureColors);
@@ -139,7 +136,7 @@ export default class Choropleth {
 		});
 
 		// Recolor legend
-		this.legend.legend(this.minMaxScale, this.minMaxColors, this.map, true);
+		this.legend.legend(this.minMaxScale, this.minMaxColors.slice().reverse(), this.map, true);
 
 		// Unset hover
 		d3.selectAll("*.hover").classed("hover", false);
@@ -170,6 +167,9 @@ export default class Choropleth {
 
 		// TODO: might be improved with native d3 code
 		measurements.forEach((row) => {
+
+			// Don't use rows without the measurement we need
+			if (typeof row.measurement == "undefined") return;
 
 			let stnID = parseInt(row.STN);
 			this.active_stations.add(stnID);
@@ -214,8 +214,7 @@ export default class Choropleth {
 		// Update legend
 		this.legend.legend(this.colorScale, this.temperatureColors, this.map);
 
-		let flevo = d3.selectAll("path[pvid='PV24']")
-		console.log(flevo);
+		let flevo = d3.selectAll("path[pvid='PV24']");
 		if (new Date(this.maxdate).getFullYear() < 1970) {
 			flevo.classed("hidden", true);
 		} else {

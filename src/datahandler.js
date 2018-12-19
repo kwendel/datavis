@@ -20,7 +20,6 @@ export default class DataHandler {
 	async load(id) {
 		// force cache use since the knmi station files wont change
 		return d3.json(`./knmi/stations/${id}.json`, {cache: "force-cache"}).then((d) => {
-			console.log(`Succesfully loaded: ${id}`);
 			this.data[id] = d;
 		}).catch((err) => {
 			console.log(`Error loading: ${id}`);

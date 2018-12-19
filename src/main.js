@@ -97,7 +97,7 @@ function start(mapdata, stationdata) {
 
 	let loadingInterval = LoadingScreen.start();
 
-	progressPromise(datahandler.loadAll([260, 350, 370]), LoadingScreen.updateProgress).then(() => {
+	progressPromise(datahandler.loadAll(), LoadingScreen.updateProgress).then(() => {
 
 		LoadingScreen.stop(loadingInterval);
 
@@ -118,8 +118,8 @@ function start(mapdata, stationdata) {
 			let dp_settings = {
 				minDate: min,
 				maxDate: max,
-				startDate: min,
-				endDate: max,
+				startDate: new Date("2017-01-01"),
+				endDate: new Date("2017-12-31"),
 				showDropdowns: true,
 				alwaysShowCalendars: true,
 				autoApply: true,
@@ -127,14 +127,15 @@ function start(mapdata, stationdata) {
 				linkedCalendars: false,
 				timeZone: 'utc',
 				ranges: {
+					"Winter '63": [new Date("1962-12-21"), new Date("1963-03-21")],
 					"Wind speed record": [new Date("2005-11-25"), new Date("2005-11-25")],
 					"Most precipitation in one month": [new Date("2004-08-01"), new Date("2004-08-31")],
-					"Coldest winter - 1963": [new Date("1962-12-01"), new Date("1963-03-01")],
-					"Coldest Elfstedentocht": [new Date("1963-18-01"), new Date("1963-18-01")],
-					"Warmest day in De Bilt": [new Date("2006-19-07"), new Date("2006-19-07")],
-					"Warmest summer ever measured": [new Date("2018-01-06"), new Date("2018-01-09")],
-					"Coldest day ever measured": [new Date("1942-27-01"), new Date("1942-27-01")],
-					"Watersnoodramp 1953": [new Date("1953-25-01"), new Date("1953-03-02")]
+					"Coldest winter": [new Date("1962-12-01"), new Date("1963-02-28")],
+					"Coldest Elfstedentocht": [new Date("1963-01-18"), new Date("1963-01-18")],
+					"Warmest day in\nDe Bilt": [new Date("2006-07-19"), new Date("2006-07-19")],
+					"Warmest summer ever measured": [new Date("2018-06-01"), new Date("2018-08-31")],
+					"Coldest day ever measured": [new Date("1942-01-27"), new Date("1942-01-27")],
+					"Watersnoodramp 1953": [new Date("1953-01-25"), new Date("1953-02-03")]
 				},
 				locale: {
 					format: 'MMMM Do, YYYY'
@@ -142,10 +143,10 @@ function start(mapdata, stationdata) {
 			};
 
 			// GEO MAP
-			let geo_datepicker = $("#geomap_datepicker").daterangepicker($.extend({}, dp_settings));
+			let geo_datepicker = $("#geomap_datepicker").daterangepicker(dp_settings);
 
 			// WIND ROSE
-			let windrose_datepicker = $("#windrose_datepicker").daterangepicker($.extend({}, dp_settings));
+			let windrose_datepicker = $("#windrose_datepicker").daterangepicker(dp_settings);	
 
 			// BAR CHART
 			let minYear = min.getFullYear(), maxYear = max.getFullYear(), yearRange = Array.from({length: maxYear - minYear + 1}, (x, i) => maxYear - i);
@@ -265,9 +266,6 @@ function start(mapdata, stationdata) {
 							start: startDateWindRose,
 							end: endDateWindRose,
 						}).then(d => {
-
-							console.log(d);
-
 							radial.plotData(d)
 						});
 
@@ -285,9 +283,6 @@ function start(mapdata, stationdata) {
 							endYear = $("#barchart_yearEnd").val(),
 							compareYear = $("#barchart_yearCompare").val();
 
-						console.log(beginYear, endYear, compareYear);
-
-
 						Promise.all([datahandler.queryRange({
 							select: `STN, DATE as date, CAST(${qvar} as Number) as duration, CAST(${qvar2} as Number) as percentage`,
 							start: beginYear + "-01-01",
@@ -299,10 +294,8 @@ function start(mapdata, stationdata) {
 						})]).then((query_data) => {
 
 							if (type === "sun") {
-								console.log("sun");
 								sun.plotData(query_data[0], query_data[1], '', 'Amount of sun hours ');
 							} else {
-								console.log("rain");
 								rain.plotData(query_data[0], query_data[1], '', 'Amount of rainfall ');
 							}
 
