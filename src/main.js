@@ -84,7 +84,7 @@ function start(mapdata, stationdata) {
 	let stations = stationdata;
 
 	map = new Choropleth("map_container", "#map", mapdata, stationdata);
-	radial = new RadialHistogram('wind_container', '#wind_vis');
+	radial = new RadialHistogram('wind_container', '#wind_vis', stationdata);
 	sun = new BarChart('sun_container', '#sun_vis', stationdata, 'Sunshine (hours)');
 	rain = new BarChart('rain_container', '#rain_vis', stationdata, 'Precipitation (hours)');
 
@@ -97,7 +97,7 @@ function start(mapdata, stationdata) {
 
 	let loadingInterval = LoadingScreen.start();
 
-	progressPromise(datahandler.loadAll(), LoadingScreen.updateProgress).then(() => {
+	progressPromise(datahandler.loadAll([]), LoadingScreen.updateProgress).then(() => {
 
 		LoadingScreen.stop(loadingInterval);
 
@@ -146,7 +146,7 @@ function start(mapdata, stationdata) {
 			let geo_datepicker = $("#geomap_datepicker").daterangepicker(dp_settings);
 
 			// WIND ROSE
-			let windrose_datepicker = $("#windrose_datepicker").daterangepicker(dp_settings);	
+			let windrose_datepicker = $("#windrose_datepicker").daterangepicker(dp_settings);
 
 			// BAR CHART
 			let minYear = min.getFullYear(), maxYear = max.getFullYear(), yearRange = Array.from({length: maxYear - minYear + 1}, (x, i) => maxYear - i);
@@ -290,13 +290,13 @@ function start(mapdata, stationdata) {
 						}), datahandler.queryRange({
 							select: `STN, DATE as date, CAST(${qvar} as Number) as duration, CAST(${qvar2} as Number) as percentage`,
 							start: compareYear + '-01-01',
-							end: compareYear + '12-31'
+							end: compareYear + '-12-31'
 						})]).then((query_data) => {
 
 							if (type === "sun") {
-								sun.plotData(query_data[0], query_data[1], '', 'Amount of sun hours ');
+								sun.plotData(query_data[0], query_data[1], '', {beginYear, endYear, compareYear});
 							} else {
-								rain.plotData(query_data[0], query_data[1], '', 'Amount of rainfall ');
+								rain.plotData(query_data[0], query_data[1], '', {beginYear, endYear, compareYear});
 							}
 
 							updateVisScreens(activeCard);

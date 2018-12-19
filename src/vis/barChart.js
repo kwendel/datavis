@@ -45,7 +45,9 @@ export default class BarChart {
 		this.xAxis = d3.axisBottom(this.x)
 			.tickFormat(d3.timeFormat("%B"))
 		;
-		this.yAxis = d3.axisLeft(this.y);
+		this.yAxis = d3.axisRight(this.y)
+			.tickSize(this.viewWidth)
+		;
 	}
 
 	drawAxis() {
@@ -68,11 +70,23 @@ export default class BarChart {
 			.text('Month');
 
 		// Set y-axis
-		this.group
+		let ticks = this.group
 			.append("g")
 			.attr("class", "axis axis--y")
-			// .attr("transform", "translate(0,0)")
-			.call(this.yAxis);
+			// .attr("transform", `translate(${this.viewWidth},0)`)
+			.call(this.yAxis)
+			.selectAll('.tick');
+
+		ticks.selectAll("line")
+			.attr("stroke", "#777")
+			.attr("stroke-dasharray", "4,4");
+		// .attr('transform', `translate(${this.viewWidth},0)`);
+
+		ticks.selectAll("text")
+			.attr('fill', 'black')
+			.attr("x", -30)
+			.attr("dy", 4);
+
 
 		// Set y-axis label
 		this.group
@@ -80,6 +94,9 @@ export default class BarChart {
 			.attr('class', 'axis-label legend')
 			.attr('transform', `translate(-35,150) rotate(-90)`)
 			.text(this.ylabel)
+
+		// Set y-lines
+
 	}
 
 	getDateFromMonth(monthNumber) {
@@ -209,12 +226,25 @@ export default class BarChart {
 				.transition(t)
 				.style('opacity', opacity);
 		};
-		
+
 
 		let legend = this.group
 			.append('g')
 			.attr('class', 'legend')
-			.attr('transform', (d, i) => `translate(${this.viewWidth - 100},0)`)
+			.attr('transform', (d, i) => `translate(${this.viewWidth - 100},${1})`)
+			.attr('width', 100)
+			.attr('height', 36);
+
+		legend
+			.append('rect')
+			.attr('width', 100)
+			.attr('height', 36)
+			.attr('fill', 'white');
+
+		let legendBlocks = this.group
+			.selectAll('.legend')
+			.append('g')
+			.attr('transform', `translate(5,5)`)
 			.selectAll('g')
 			.data(['rect-normal', 'rect-compare'].reverse())
 			.enter()
@@ -237,26 +267,20 @@ export default class BarChart {
 				}
 			});
 
-		legend
+		legendBlocks
 			.append('rect')
 			.attr('class', d => d)
 			.attr('transform', (d, i) => `translate(0, ${i * 20})`)
 			.attr('width', 18)
 			.attr('height', 18);
 
-		legend
+		legendBlocks
 			.append("text")
 			.attr('transform', (d, i) => `translate(0, ${i * 20})`)
 			.attr("x", 24)
 			.attr("y", 9)
 			.attr("dy", "0.35em")
-			.text((d) => {
-				if (d === 'rect-normal') {
-					return 'Average'
-				} else {
-					return 'Selected'
-				}
-			})
+			.text(this.legendText);
 	}
 
 	setAllowedSeasons(seasonQuery) {
@@ -283,9 +307,22 @@ export default class BarChart {
 
 	}
 
-	plotData(normal, compareWith, seasonQuery) {
+	plotData(normal, compareWith, seasonQuery, {beginYear, endYear, compareYear}) {
 		normal = this.transformData(normal);
 		compareWith = this.transformData(compareWith);
+
+		this.legendText = d => {
+			if (d === 'rect-normal') {
+				if (beginYear === endYear) {
+					return `${beginYear}`;
+				} else {
+					return `${beginYear} - ${endYear}`
+				}
+			} else {
+				return `${compareYear}`
+			}
+		};
+
 
 		// set Y-axis, no need to set X-axis because we always loop over all the months
 		let max = d3.max([d3.max(normal, d => d.median), d3.max(compareWith, d => d.median)]) * 1.1;
