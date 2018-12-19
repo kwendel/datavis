@@ -84,7 +84,7 @@ function start(mapdata, stationdata) {
 	let stations = stationdata;
 
 	map = new Choropleth("map_container", "#map", mapdata, stationdata);
-	radial = new RadialHistogram('wind_container', '#wind_vis');
+	radial = new RadialHistogram('wind_container', '#wind_vis', stationdata);
 	sun = new BarChart('sun_container', '#sun_vis', stationdata, 'Amount of sunshine ');
 	rain = new BarChart('rain_container', '#rain_vis', stationdata, 'Amount of rainfall ');
 
@@ -262,9 +262,6 @@ function start(mapdata, stationdata) {
 							start: startDateWindRose,
 							end: endDateWindRose,
 						}).then(d => {
-
-							console.log(d);
-
 							radial.plotData(d)
 						});
 

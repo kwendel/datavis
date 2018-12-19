@@ -3,7 +3,7 @@ import {calculateSVGWH} from "../utils";
 import * as chromatic from 'd3-scale-chromatic';
 
 export default class RadialHistogram {
-	constructor(containerId, svgId) {
+	constructor(containerId, svgId, stationData) {
 		this.svg = d3.select(svgId);
 
 		let {viewWidth, viewHeight} = calculateSVGWH(containerId);
@@ -22,7 +22,11 @@ export default class RadialHistogram {
 		this.scaling = 0.1 * 3.6;
 
 		this.initAxis();
-		this.createMainGroup(viewWidth, viewHeight)
+		this.createMainGroup(viewWidth, viewHeight);
+
+
+		this.station_area_map = new Map();
+		this.stationdata = stationData.map(x => this.station_area_map.set(x.station, x.province_code));
 	}
 
 	initAxis() {
@@ -118,7 +122,7 @@ export default class RadialHistogram {
 			.padAngle(0.01)
 			.padRadius(this.innerRadius);
 
-		this.group
+		let paths = this.group
 			.append("g")
 			.selectAll("g")
 			.data(stackedData)
@@ -132,7 +136,17 @@ export default class RadialHistogram {
 			.enter()
 			.append("path")
 			.attr("d", arc)
-			.attr("transform", `rotate(${angleOffset})`);
+			.attr("transform", `rotate(${angleOffset})`)
+			.style('opacity', 0);
+
+		const t = d3.transition()
+			.duration(500)
+			.delay((d, i) => 500 *i)
+			.ease(d3.easeCubic)
+
+		paths
+			.transition(t)
+			.style('opacity', 1);
 	}
 
 	setAxisLines() {
@@ -216,27 +230,51 @@ export default class RadialHistogram {
 		return data;
 	}
 
-	computeFrequencies(data, totalDays) {
+	computeFrequencies(data) {
 		// Nest on angle, and per angle on range
 		let nested = d3.nest()
 			.key((d) => d.angle)
 			.key((d) => d.range)
 			.entries(data);
 
-		// Compute frequencies
+		let pv = d3.nest()
+			.key(d => d.pv);
+
+		// For every direction, we count the amount of windspeeds
+		// Note: still should have been done with d3.histogram for better performance
+		let totalCount = 0;
 		for (let direction of nested) {
 			let windSpeeds = direction.values;
-			direction.total = 0;
+			direction.total_count = 0;
 
 			for (let w of windSpeeds) {
-				// Compute percentage of total
-				w.percentage = (w.values.length / totalDays) * 100;
-				direction.total += w.percentage;
+				// Provinces have multiple stations
+				// Therefore, we take the average of every province
+				let pvs = pv.entries(w.values);
+				let counts = pvs.map(d => d.values.length);
+				let avg_count = d3.mean(counts);
+				// console.log(`${w.key} - ${counts} - ${avg_count}`);
 
-				// Save windspeedRange = % in direction object because this is easier for stacking
+				// Save the counts
+				w.count = avg_count;
+				totalCount += avg_count;
+				direction.total_count += avg_count; //w.percentage;
+			}
+		}
+
+		// Nested how contains the counts for every windspeed for every direction
+		// We now turn it into a percentage by dividing by the total measurements that were maded
+		for (let direction of nested) {
+			direction.total = (direction.total_count / totalCount) * 100;
+			let windSpeeds = direction.values;
+
+			for (let w of windSpeeds) {
+				w.percentage = (w.count / totalCount) * 100;
 				direction[w.key] = w.percentage;
 			}
 		}
+
+
 		return nested
 	}
 
@@ -249,12 +287,18 @@ export default class RadialHistogram {
 
 	plotData(data) {
 		// convert to km/h
-		data.forEach(d => d.speed = parseInt(d.speed) * this.scaling);
+		data = data.map(d => {
+			return {
+				...d,
+				// convert speed
+				speed: parseInt(d.speed) * this.scaling,
+				// add province code
+				pv: this.station_area_map.get(parseInt(d.STN)),
+
+			};
+		});
 
 		let maxSpeed = d3.max(data, (d) => d.speed);
-		let totalDays = d3.nest()
-			.key((d) => d.date)
-			.entries(data).length;
 
 		this.createMainGroup(this.viewWidth, this.viewHeight);
 
@@ -263,11 +307,30 @@ export default class RadialHistogram {
 		// - transform direction and speed to discrete steps
 		// - then compute the frequencies of the speed steps per direction
 		data = this.removeUndefinedValues(data);
+
 		let roundedMaxSpeed = this.setTransformRanges(maxSpeed);
 		data = this.transformData(data, roundedMaxSpeed);
-		data = this.computeFrequencies(data, totalDays);
+		data = this.computeFrequencies(data);
 
-		// console.log(data)
+		// // Test if the total is 100%
+		// let total_percentage = data.reduce((t, curr) => {
+		// 	return t + curr.total;
+		// }, 0);
+		// console.log(`Total percentage ${total_percentage}`);
+
+		// We may run into the problem that some direction doesn't have a direction
+		// So add the an empty direction if it was not existing in the data
+		let directions = data.map(d => d.key);
+		for (let d of this.directionRange) {
+			if (!directions.includes(d)) {
+				data.push({
+					key: d,
+					values: [],
+					total: 0,
+					total_count: 0,
+				});
+			}
+		}
 
 		// Now draw the data
 		let angleOffset = -360.0 / data.length / 2.0;
