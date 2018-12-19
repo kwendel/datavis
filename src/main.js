@@ -292,15 +292,15 @@ function start(mapdata, stationdata) {
 						}), datahandler.queryRange({
 							select: `STN, DATE as date, CAST(${qvar} as Number) as duration, CAST(${qvar2} as Number) as percentage`,
 							start: compareYear + '-01-01',
-							end: compareYear + '12-31'
+							end: compareYear + '-12-31'
 						})]).then((query_data) => {
 
 							if (type === "sun") {
 								console.log("sun");
-								sun.plotData(query_data[0], query_data[1], '', 'Amount of sun hours ');
+								sun.plotData(query_data[0], query_data[1], '', {beginYear, endYear, compareYear});
 							} else {
 								console.log("rain");
-								rain.plotData(query_data[0], query_data[1], '', 'Amount of rainfall ');
+								rain.plotData(query_data[0], query_data[1], '', {beginYear, endYear, compareYear});
 							}
 
 							updateVisScreens(activeCard);
