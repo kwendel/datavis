@@ -203,7 +203,13 @@ export default class BarChart {
 	drawLegend() {
 		const t = d3.transition()
 			.duration(500);
-		// .ease(d3.easeLinear);
+		const animate = (className, opacity) => {
+			this.svg.selectAll(className)
+				.interrupt()
+				.transition(t)
+				.style('opacity', opacity);
+		};
+		
 
 		let legend = this.group
 			.append('g')
@@ -215,32 +221,19 @@ export default class BarChart {
 			.append('g')
 			.on("mouseover", (d) => {
 				// This probably can be done with CSS but I was unable to
-				// TODO: Sven is this doable with CSS?
 				if (d === 'rect-normal') {
-					d3.selectAll('#rect-compare')
-						.interrupt()
-						.transition(t)
-						.style('opacity', 0.2);
+					animate('#rect-compare', 0.2);
 				}
 				else if (d === 'rect-compare') {
-					d3.selectAll('#rect-normal')
-						.interrupt()
-						.transition(t)
-						.style('opacity', 0.2);
+					animate('#rect-normal', 0.2);
 				}
 			})
 			.on("mouseout", (d) => {
 				if (d === 'rect-normal') {
-					d3.selectAll('#rect-compare')
-						.interrupt()
-						.transition(t)
-						.style('opacity', 1);
+					animate('#rect-compare', 1);
 				}
 				else if (d === 'rect-compare') {
-					d3.selectAll('#rect-normal')
-						.interrupt()
-						.transition(t)
-						.style('opacity', 1);
+					animate('#rect-normal', 1);
 				}
 			});
 
@@ -298,6 +291,7 @@ export default class BarChart {
 		let max = d3.max([d3.max(normal, d => d.median), d3.max(compareWith, d => d.median)]) * 1.1;
 		this.y.domain([0, max]);
 
+		this.createMainGroup(this.viewWidth, this.viewHeight);
 		this.setAllowedSeasons(seasonQuery);
 		this.drawAxis();
 		this.drawLegend();
