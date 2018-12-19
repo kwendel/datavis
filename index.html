@@ -1,16 +1,235 @@
 <!DOCTYPE html>
 <html>
-	<head>
-		<title></title>
-		<link rel="stylesheet" href="/datavis/style.ad7a1125.css">
-	</head>
-	<body>
-		<div id="viscontainer">
-			<svg id="vis"></svg>
+<head>
+	<title>IN4086 - Data Visualization</title>
+	<link rel="stylesheet" href="/datavis/style.10b03fd8.css">
+	<link rel="stylesheet" href="/datavis/daterangepicker.e33ec95c.css">
+
+
+</head>
+<body>
+
+<div class="row align-items-center" id="loading">
+	<div class="col">
+		<div class="progress w-50">
+			<div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar"></div>
+		</div>
+		<h1>Loading visualization...</h1>
+		<p id="funny_loading_quote"></p>
+	</div>
+</div>
+
+<div id="wrapper" class="d-flex flex-column container-fluid">
+
+	<svg height="0" width="0" xmlns="http://www.w3.org/2000/svg" version="1.1">
+		<defs>
+			<pattern id="na" patternunits="userSpaceOnUse" width="4" height="4">
+				<image xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAYAAACp8Z5+AAAAD0lEQVQImWNgQAX/yeAAAIHCA/0RE2WAAAAAAElFTkSuQmCC" x="0" y="0" width="4" height="4">
+				</image>
+			</pattern>
+		</defs>
+		<defs id="legend"></defs>
+	</svg>
+
+	<div class="flex-grow-1 d-flex flex-row row">
+
+		<div id="sidebar" class="col-sm-12 col-md-3">
+
+			<div id="selectionPane">
+
+				<h3>Historical Dutch Weather</h3>
+				<p>Choose a visualization type.</p>
+
+
+				<div class="accordion" id="visSelection">
+					<div class="card" id="geo_card">
+						<div class="card-header">
+							<h5 class="mb-0">
+								<button class="btn btn-link" type="button" data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+									Geographical Map
+								</button>
+							</h5>
+						</div>
+						<div id="collapseOne" class="collapse show" aria-labelledby="headingOne" data-parent="#visSelection">
+							<div class="card-body">
+
+								<!-- GEO MAP -->
+								<p>Plot the average temperate of the given time period on a map of The Netherlands and explore provicincial differences.</p>
+
+								<form>
+									<div class="form-group">
+										<label>Choose time period:</label>
+										<input type="text" class="form-control" id="geomap_datepicker" placeholder="Click to select.." readonly="">
+									</div>
+									<div class="form-group">
+										<label>Refine selection:
+											<small>(optional)</small>
+										</label>
+
+										<div class="d-flex btn-group btn-group-toggle" role="group" aria-label="Basic example" data-toggle="buttons">
+
+											<div class="btn-group w-100">
+												<label class="btn btn-outline-secondary w-100 active">
+													<input type="radio" name="options" autocomplete="off" data-sql="" checked=""> None
+												</label>
+											</div>
+
+											<div class="btn-group w-100">
+												<label class="btn btn-outline-secondary dropdown-toggle dropdown w-100" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+													<input type="radio" name="options" autocomplete="off" data-sql="" id="geo_seasons"> Seasons
+												</label>
+												<div class="dropdown-menu" id="geo_season_dropdown">
+													<ul class="">
+														<li class="list-group-item"><a href="#" class="small" data-value="option1" tabindex="-1"><input type="checkbox" id="spring"> Spring</a></li>
+														<li class="list-group-item"><a href="#" class="small" data-value="option1" tabindex="-1"><input type="checkbox" id="summer"> Summer</a></li>
+														<li class="list-group-item"><a href="#" class="small" data-value="option1" tabindex="-1"><input type="checkbox" id="autumn"> Autumn</a></li>
+														<li class="list-group-item"><a href="#" class="small" data-value="option1" tabindex="-1"><input type="checkbox" id="winter"> Winter</a></li>
+													</ul>
+												</div>
+											</div>
+
+											<div class="btn-group w-100">
+												<label class="btn btn-outline-secondary dropdown-toggle dropdown w-100" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+													<input type="radio" name="options" autocomplete="off" data-sql="" id="geo_months"> Month(s)
+												</label>
+												<div class="dropdown-menu" id="geo_month_dropdown">
+													<ul class="">
+														<li class="list-group-item"><a href="#" class="small" data-value="option1" tabindex="-1"><input type="checkbox" data-month="1"> Jan</a></li>
+														<li class="list-group-item"><a href="#" class="small" data-value="option1" tabindex="-1"><input type="checkbox" data-month="2"> Feb</a></li>
+														<li class="list-group-item"><a href="#" class="small" data-value="option1" tabindex="-1"><input type="checkbox" data-month="3"> Mar</a></li>
+														<li class="list-group-item"><a href="#" class="small" data-value="option1" tabindex="-1"><input type="checkbox" data-month="4"> Apr</a></li>
+														<li class="list-group-item"><a href="#" class="small" data-value="option1" tabindex="-1"><input type="checkbox" data-month="5"> May</a></li>
+														<li class="list-group-item"><a href="#" class="small" data-value="option1" tabindex="-1"><input type="checkbox" data-month="6"> Jun</a></li>
+														<li class="list-group-item"><a href="#" class="small" data-value="option1" tabindex="-1"><input type="checkbox" data-month="7"> Jul</a></li>
+														<li class="list-group-item"><a href="#" class="small" data-value="option1" tabindex="-1"><input type="checkbox" data-month="8"> Aug</a></li>
+														<li class="list-group-item"><a href="#" class="small" data-value="option1" tabindex="-1"><input type="checkbox" data-month="9"> Sep</a></li>
+														<li class="list-group-item"><a href="#" class="small" data-value="option1" tabindex="-1"><input type="checkbox" data-month="10"> Oct</a></li>
+														<li class="list-group-item"><a href="#" class="small" data-value="option1" tabindex="-1"><input type="checkbox" data-month="11"> Nov</a></li>
+														<li class="list-group-item"><a href="#" class="small" data-value="option1" tabindex="-1"><input type="checkbox" data-month="12"> Dec</a></li>
+													</ul>
+												</div>
+											</div>
+										</div>
+
+
+									</div>
+								</form>
+
+
+							</div>
+						</div>
+					</div>
+					<div class="card" id="windrose_card">
+						<div class="card-header">
+							<h5 class="mb-0">
+								<button class="btn btn-link collapsed" type="button" data-toggle="collapse" data-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+									Radial Histogram / Wind Rose
+								</button>
+							</h5>
+						</div>
+						<div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#visSelection">
+							<div class="card-body">
+
+								<!-- WIND ROSE -->
+								<p>Visualize the wind direction and speed during the selected period of time.</p>
+
+								<form>
+									<div class="form-group">
+										<label>Choose time period:</label>
+										<input type="text" class="form-control" id="windrose_datepicker" placeholder="Click to select.." readonly="">
+									</div>
+								</form>
+
+							</div>
+						</div>
+					</div>
+					<div class="card" id="barchart_card">
+						<div class="card-header">
+							<h5 class="mb-0">
+								<button class="btn btn-link collapsed" type="button" data-toggle="collapse" data-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+									Bar Chart
+								</button>
+							</h5>
+						</div>
+						<div id="collapseThree" class="collapse" aria-labelledby="headingThree" data-parent="#visSelection">
+							<div class="card-body">
+
+								<p>Compare the yearly volume of either precipitation or sun hours with the average of a year range.</p>
+
+								<!-- BAR CHART -->
+								<form>
+									<div class="form-row">
+										<div class="form-group col-md-4">
+											<label for="barchart_yearCompare">Compare</label>
+											<select id="barchart_yearCompare" class="form-control"></select>
+										</div>
+										<div class="form-group col-md-8">
+											<label for="barchart_yearBegin">With</label>
+											<div class="input-group">
+												<select id="barchart_yearBegin" class="form-control"></select>
+												<div class="input-group-prepend input-group-append">
+													<div class="input-group-text">to</div>
+												</div>
+												<select id="barchart_yearEnd" class="form-control"></select>
+											</div>
+										</div>
+
+									</div>
+
+									<div class="form-row">
+
+										<div class="btn-group btn-group-toggle d-flex w-100" data-toggle="buttons">
+											<label class="btn btn-outline-secondary active w-100">
+												<input type="radio" name="options" autocomplete="off" id="rain" checked=""> Precipitation
+											</label>
+											<label class="btn btn-outline-secondary w-100">
+												<input type="radio" name="options" autocomplete="off" id="sun"> Sun Hours
+											</label>
+										</div>
+
+									</div>
+
+								</form>
+
+							</div>
+						</div>
+					</div>
+				</div>
+
+			</div>
+
+			<div id="runContainer" class="text-right">
+				<button class="btn btn-primary" type="button" id="visualize">Apply changes &rsaquo;</button>
+			</div>
+
+
 		</div>
 
-	<div id="container"></div>
-	</body>
+		<div id="mapPane" class="col-sm-12 col-md-9">
 
-	<script type="text/javascript" src="/datavis/main.0beec883.js"></script>
+			<div id="map_container" data-card="geo_card" class="vis-container map visible">
+				<svg id="map"></svg>
+			</div>
+			<div id="wind_container" data-card="windrose_card" class="vis-container rad">
+				<svg id="wind_vis"></svg>
+			</div>
+			<div id="sun_container" data-card="barchart_card sun" class="vis-container bar">
+				<svg id="sun_vis"></svg>
+			</div>
+			<div id="rain_container" data-card="barchart_card rain" class="vis-container bar">
+				<svg id="rain_vis"></svg>
+			</div>
+
+		</div>
+
+	</div>
+</div>
+
+<script type="text/javascript" src="/datavis/jquery.min.8cd7a649.js"></script>
+<script type="text/javascript" src="/datavis/moment.bb0b6142.js"></script>
+<script type="text/javascript" src="/datavis/daterangepicker.55892ea1.js"></script>
+<script type="text/javascript" src="/datavis/main.3952f5e3.js"></script>
+<script type="text/javascript" src="/datavis/bootstrap.bundle.min.0dfbfe31.js"></script>
+
+</body>
 </html>
