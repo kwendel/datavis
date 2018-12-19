@@ -110,6 +110,15 @@ body {
 		stroke-opacity: .5;
 	}
 
+	& path.selected {
+		stroke-width: 3;
+	}
+
+	& path.hidden {
+		opacity: 0;
+		pointer-events: none;
+	}
+
 	& > path.hover {
 		transition: all 0s linear;
 		fill-opacity: 1;
