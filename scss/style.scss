@@ -82,13 +82,10 @@ body {
 	}
 
 	&.bar {
-
-
 		width: 80%;
 		transform: translateX(10%);
 		margin-top: 20vh;
 		height: 60vh;
-
 	}
 }
 
@@ -111,7 +108,7 @@ body {
 	}
 
 	& path.selected {
-		stroke-width: 3;
+		fill: url(#sel) !important;
 	}
 
 	& path.hidden {

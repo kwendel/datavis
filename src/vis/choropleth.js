@@ -61,7 +61,6 @@ export default class Choropleth {
 
 		this.stations = this.map.append('g').attr("class", "stations-group");
 		this.labels = this.map.append("g").attr("class", "label-group");
-
 	}
 
 	/**
@@ -98,6 +97,9 @@ export default class Choropleth {
 
 		// Don't apply this visualization on provinces without data
 		if (typeof this.data[d.id] == "undefined" || isNaN(this.data[d.id])) return;
+
+		// Unset selection
+		d3.selectAll("path").classed("selected", false);
 
 		// Disable this visualization when clicking the active province
 		if (typeof this.activeBaseline != "undefined" && this.activeBaseline === d) {
@@ -207,6 +209,9 @@ export default class Choropleth {
 	 * @param data List of records. Required fields: 'STN', 'DATE', 'measurement'.
 	 */
 	plot() {
+
+		// Unset selection
+		d3.selectAll("path").classed("selected", false);
 
 		// Color provinces
 		this.map.selectAll("path").style("fill", d => this.color(d));
