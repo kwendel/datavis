@@ -14,7 +14,7 @@ import * as daterangepicker from "daterangepicker";
 import "bootstrap/dist/js/bootstrap.bundle";
 
 // Define global variables
-let datahandler, vis;
+let datahandler, map, radial, sun, rain;
 
 let season_queries = {
 	"spring": "MONTH(DATE) BETWEEN 3 AND 5",
@@ -82,15 +82,22 @@ function start(mapdata, stationdata) {
 
 	// Draw map and wait for the stations
 	let stations = stationdata;
-	vis = new Choropleth("vis_container", "#vis", mapdata, stationdata);
-	vis.drawMap();
+
+	map = new Choropleth("map_container", "#map", mapdata, stationdata);
+	radial = new RadialHistogram('wind_container', '#wind_vis');
+	sun = new BarChart('sun_container', '#sun_vis', stationdata, 'Amount of sunshine ');
+	rain = new BarChart('rain_container', '#rain_vis', stationdata, 'Amount of rainfall ');
+
+
+	// Show map as first visualization
+	map.drawMap();
 
 	// Load all the stations files
 	datahandler = new DataHandler(stations);
 
 	let loadingInterval = LoadingScreen.start();
 
-	progressPromise(datahandler.loadAll([260]), LoadingScreen.updateProgress).then(() => {
+	progressPromise(datahandler.loadAll([]), LoadingScreen.updateProgress).then(() => {
 
 		LoadingScreen.stop(loadingInterval);
 
@@ -159,20 +166,7 @@ function start(mapdata, stationdata) {
 				// 1. Find out which visualization is selected
 				let activeCard = $("#visSelection [aria-expanded='true']").parents(".card").attr('id');
 
-
-				// 2. Validate selection (only for geo dropdowns)
-				switch (activeCard) {
-					case "geo_card":
-
-						// TODO: If dropdown selected, check if any subfields selected
-
-						break;
-				}
-
-				// 3. Remove old visualization
-
-
-				// 4. Load new visualization
+				// 2. Load new visualization
 				switch (activeCard) {
 
 					case "geo_card":
@@ -237,8 +231,7 @@ function start(mapdata, stationdata) {
 						if (valid) {
 
 
-							vis = new Choropleth("vis_container", "#vis", mapdata, stationdata);
-							vis.drawMap();
+							// map.drawMap();
 
 							datahandler.queryRange({
 								select: 'STN, DATE, TG as measurement',
@@ -246,8 +239,10 @@ function start(mapdata, stationdata) {
 								end: endDate,
 								where: q
 							}).then((d) => {
-								vis.setData(d);
-								vis.plot();
+								map.setData(d);
+								map.plot();
+
+								updateVisScreens(activeCard);
 							});
 
 
@@ -257,31 +252,64 @@ function start(mapdata, stationdata) {
 
 					case "windrose_card":
 
+						// Get active dates
+						let startDateWindRose = windrose_datepicker.data('daterangepicker').startDate.utc().toDate(),
+							endDateWindRose = windrose_datepicker.data('daterangepicker').endDate.utc().toDate();
+
+
+						datahandler.queryRange({
+							select: 'STN, DATE as date, CAST(DDVEC as Number) as angle, CAST(FHVEC as Number) as speed, CAST(FG as Number) as avg_speed',
+							start: startDateWindRose,
+							end: endDateWindRose,
+						}).then(d => {
+
+							console.log(d);
+
+							radial.plotData(d)
+						});
+
+						updateVisScreens(activeCard);
 						break;
 
 					case "barchart_card":
 
-						let normal = datahandler.queryRange({
-							select: 'STN, DATE as date, CAST(DR as Number) as duration, CAST(RH as Number) as percentage',
-							start: '2000-01-01',
-							end: '2017-01-01'
+						let type = $("#" + activeCard).find("input:radio:checked").attr("id");
+						let qvar = type === "sun" ? "SQ" : "DR";
+						let qvar2 = type === "sun" ? "SP" : "RH";
+						activeCard += " " + type;
+
+						let beginYear = $("#barchart_yearBegin").val(),
+							endYear = $("#barchart_yearEnd").val(),
+							compareYear = $("#barchart_yearCompare").val();
+
+						console.log(beginYear, endYear, compareYear);
+
+
+						Promise.all([datahandler.queryRange({
+							select: `STN, DATE as date, CAST(${qvar} as Number) as duration, CAST(${qvar2} as Number) as percentage`,
+							start: beginYear + "-01-01",
+							end: endYear + "-12-31"
+						}), datahandler.queryRange({
+							select: `STN, DATE as date, CAST(${qvar} as Number) as duration, CAST(${qvar2} as Number) as percentage`,
+							start: compareYear + '-01-01',
+							end: compareYear + '12-31'
+						})]).then((query_data) => {
+
+							if (type === "sun") {
+								console.log("sun");
+								sun.plotData(query_data[0], query_data[1], '', 'Amount of sun hours ');
+							} else {
+								console.log("rain");
+								rain.plotData(query_data[0], query_data[1], '', 'Amount of rainfall ');
+							}
+
+							updateVisScreens(activeCard);
 						});
 
-						let compareWith = datahandler.queryRange({
-							select: 'STN, DATE as date, CAST(DR as Number) as duration, CAST(RH as Number) as percentage',
-							start: '2003-01-01',
-							end: '2004-01-01'
-						});
-
-						console.log(normal, compareWith);
-
-						d3.selectAll('#vis *').remove();
-
-						vis = new BarChart('vis_container', '#vis', stations, 'Amount of rainfall');
-						vis.plotData(normal, compareWith, 'MONTH(DATE) IN (12, 1, 2)', 'Amount of rainfall ');
 
 						break;
 				}
+
 
 			});
 
@@ -293,4 +321,12 @@ function start(mapdata, stationdata) {
 
 
 }
+
+const updateVisScreens = (activeCard) => {
+
+	// Show right visualization
+	$(".vis-container").removeClass("visible");
+	$(`.vis-container[data-card="${activeCard}"]`).addClass("visible");
+
+};
 

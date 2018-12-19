@@ -95,6 +95,7 @@ export default class BarChart {
 	}
 
 	transformData(data) {
+
 		// parser for the data
 		const parseDate = d3.timeParse("%Y-%m-%d");
 		const parse = (d) => {
@@ -217,8 +218,7 @@ export default class BarChart {
 					d3.selectAll('#rect-compare')
 						.transition(t)
 						.style('opacity', 0.2);
-				}
-				else if (d === 'rect-compare') {
+				} else if (d === 'rect-compare') {
 					d3.selectAll('#rect-normal')
 						.transition(t)
 						.style('opacity', 0.2);
@@ -229,8 +229,7 @@ export default class BarChart {
 					d3.selectAll('#rect-compare')
 						.transition(t)
 						.style('opacity', 1);
-				}
-				else if (d === 'rect-compare') {
+				} else if (d === 'rect-compare') {
 					d3.selectAll('#rect-normal')
 						.transition(t)
 						.style('opacity', 1);
@@ -291,6 +290,7 @@ export default class BarChart {
 		let max = d3.max([d3.max(normal, d => d.median), d3.max(compareWith, d => d.median)]) * 1.1;
 		this.y.domain([0, max]);
 
+		this.createMainGroup(this.viewWidth, this.viewHeight);
 		this.setAllowedSeasons(seasonQuery);
 		this.drawAxis();
 		this.drawLegend();

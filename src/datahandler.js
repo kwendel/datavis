@@ -87,7 +87,7 @@ export default class DataHandler {
 	// 			end: '2015-01-01',
 	// 			where: 'DDVEC < 80',
 	// 		}))
-	queryRange({select, where, groupby, start, end}, stations = []) {
+	async queryRange({select, where, groupby, start, end}, stations = []) {
 
 		// Convert date objects to string
 		if (start instanceof Date) start = this.dateFormatter(start)
@@ -96,7 +96,7 @@ export default class DataHandler {
 		let whereClause = `DATE BETWEEN '${start}' AND '${end}'`;
 		if (where) whereClause += ` AND ${where}`;
 
-		return this.query({
+		return await this.query({
 				select: select,
 				where: whereClause,
 				orderby: `DATE asc`,

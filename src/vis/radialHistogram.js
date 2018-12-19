@@ -180,7 +180,7 @@ export default class RadialHistogram {
 		// SpeedRange
 		// We divide the speed range in nrOfBands parts
 		// D3.ticks is not used because it returns unpredictable amount of steps
-		let stepSize = (maxSpeed)  / this.nrOfBands;
+		let stepSize = (maxSpeed) / this.nrOfBands;
 		// round to nearest integer that is dividable by 5
 		stepSize = Math.ceil(stepSize / 5) * 5;
 
@@ -268,7 +268,7 @@ export default class RadialHistogram {
 		data = this.computeFrequencies(data, totalDays);
 
 		// console.log(data)
-
+		
 		// Now draw the data
 		let angleOffset = -360.0 / data.length / 2.0;
 		this.setDomain(data);

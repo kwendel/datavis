@@ -15,7 +15,6 @@ export default class Choropleth {
 		this.stationdata = stationdata;
 
 		this.temperatureColors = ["#00467d", "#eee", "#FFBA39", "#C85153"];
-		// this.minMaxColors = ['#91bfdb', '#ffffff', '#fc8d59']
 		this.minMaxColors = ['#91bfdb', '#ffffff', '#fc8d59']
 
 		// TODO: prevent extrapolate

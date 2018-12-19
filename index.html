@@ -182,10 +182,10 @@
 
 										<div class="btn-group btn-group-toggle d-flex w-100" data-toggle="buttons">
 											<label class="btn btn-outline-secondary active w-100">
-												<input type="radio" name="options" id="option1" autocomplete="off" checked> Precipitation
+												<input type="radio" name="options" autocomplete="off" id="rain" checked> Precipitation
 											</label>
 											<label class="btn btn-outline-secondary w-100">
-												<input type="radio" name="options" id="option2" autocomplete="off"> Sun Hours
+												<input type="radio" name="options" autocomplete="off" id="sun"> Sun Hours
 											</label>
 										</div>
 
@@ -207,10 +207,19 @@
 
 		</div>
 
-		<div id="mapPane" class="d-flex flex-column col-sm-12 col-md-9">
+		<div id="mapPane" class="col-sm-12 col-md-9">
 
-			<div id="vis_container" class="flex-grow-1">
-				<svg id="vis"></svg>
+			<div id="map_container" data-card="geo_card" class="vis-container map visible">
+				<svg id="map"></svg>
+			</div>
+			<div id="wind_container" data-card="windrose_card" class="vis-container rad">
+				<svg id="wind_vis"></svg>
+			</div>
+			<div id="sun_container" data-card="barchart_card sun" class="vis-container bar">
+				<svg id="sun_vis"></svg>
+			</div>
+			<div id="rain_container" data-card="barchart_card rain" class="vis-container bar">
+				<svg id="rain_vis"></svg>
 			</div>
 
 		</div>
