@@ -86,7 +86,7 @@ function start(mapdata, stationdata) {
 	map = new Choropleth("map_container", "#map", mapdata, stationdata);
 	radial = new RadialHistogram('wind_container', '#wind_vis', stationdata);
 	sun = new BarChart('sun_container', '#sun_vis', stationdata, 'Sunshine (hours)');
-	rain = new BarChart('rain_container', '#rain_vis', stationdata, 'Precipitation (hours)');
+	rain = new BarChart('rain_container', '#rain_vis', stationdata, 'Daily precipitation (hours)');
 
 
 	// Show map as first visualization
@@ -127,6 +127,7 @@ function start(mapdata, stationdata) {
 				linkedCalendars: false,
 				timeZone: 'utc',
 				ranges: {
+					"2000 - 2009": [new Date("2000-01-01"), new Date("2009-12-31")],
 					"Winter '63": [new Date("1962-12-21"), new Date("1963-03-21")],
 					"Wind speed record": [new Date("2005-11-25"), new Date("2005-11-25")],
 					"Most precipitation in one month": [new Date("2004-08-01"), new Date("2004-08-31")],

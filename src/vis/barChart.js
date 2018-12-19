@@ -92,7 +92,7 @@ export default class BarChart {
 		this.group
 			.append('text')
 			.attr('class', 'axis-label legend')
-			.attr('transform', `translate(-35,150) rotate(-90)`)
+			.attr('transform', `translate(-36,200) rotate(-90)`)
 			.text(this.ylabel)
 
 		// Set y-lines
